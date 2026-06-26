@@ -60,7 +60,7 @@ class _CapsuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = DateFormat('yyyy年MM月dd日');
+    final fmt = DateFormat('yyyy年MM月dd日 HH:mm');
     final isOpened = capsule.status == CapsuleStatus.opened;
 
     return Card(

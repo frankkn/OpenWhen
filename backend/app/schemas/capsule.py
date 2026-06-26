@@ -16,6 +16,23 @@ class CapsuleAnswerOut(CapsuleAnswerIn):
     model_config = {"from_attributes": True}
 
 
+class ReflectionIn(BaseModel):
+    question_text: str
+    answer_text: str | None = None
+
+
+class ReflectionOut(ReflectionIn):
+    id: str
+    capsule_id: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ReflectionSaveRequest(BaseModel):
+    reflections: list[ReflectionIn]
+
+
 class CapsuleCreate(BaseModel):
     title: str | None = None
     content: str
@@ -37,6 +54,7 @@ class CapsuleOut(BaseModel):
     created_at: datetime
     opened_at: datetime | None
     answers: list[CapsuleAnswerOut] = []
+    reflections: list[ReflectionOut] = []
 
     model_config = {"from_attributes": True}
 
@@ -50,20 +68,3 @@ class CapsuleListItem(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
-
-
-class ReflectionIn(BaseModel):
-    question_text: str
-    answer_text: str | None = None
-
-
-class ReflectionOut(ReflectionIn):
-    id: str
-    capsule_id: str
-    created_at: datetime
-
-    model_config = {"from_attributes": True}
-
-
-class ReflectionSaveRequest(BaseModel):
-    reflections: list[ReflectionIn]

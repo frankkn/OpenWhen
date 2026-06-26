@@ -33,6 +33,7 @@ class _SetOpenDateScreenState extends State<SetOpenDateScreen> {
 
   List<(String, Duration)> get _presets => _isAdmin
       ? [
+          ('20 秒後', const Duration(seconds: 20)),
           ('1 分鐘後', const Duration(minutes: 1)),
           ('1 小時後', const Duration(hours: 1)),
           ('1 天後', const Duration(days: 1)),
@@ -84,10 +85,7 @@ class _SetOpenDateScreenState extends State<SetOpenDateScreen> {
     });
   }
 
-  DateTime _presetDateTime(Duration offset) {
-    final base = DateTime.now().add(offset);
-    return DateTime(base.year, base.month, base.day, _openTime.hour, _openTime.minute);
-  }
+  DateTime _presetDateTime(Duration offset) => DateTime.now().add(offset);
 
   String _formatDateTime(DateTime dt) {
     final h = dt.hour.toString().padLeft(2, '0');

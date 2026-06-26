@@ -34,9 +34,9 @@ enum CapsuleStatus { locked, opened }
 
 class Capsule {
   final String id;
-  final String userId;
+  final String? userId;
   final String? title;
-  final String content;
+  final String? content;
   final CapsuleMode mode;
   final CapsuleStatus status;
   final DateTime openDate;
@@ -44,12 +44,13 @@ class Capsule {
   final DateTime createdAt;
   final DateTime? openedAt;
   final List<CapsuleAnswer> answers;
+  final List<Reflection> reflections;
 
   Capsule({
     required this.id,
-    required this.userId,
+    this.userId,
     this.title,
-    required this.content,
+    this.content,
     required this.mode,
     required this.status,
     required this.openDate,
@@ -57,21 +58,25 @@ class Capsule {
     required this.createdAt,
     this.openedAt,
     this.answers = const [],
+    this.reflections = const [],
   });
 
   factory Capsule.fromJson(Map<String, dynamic> json) => Capsule(
-        id: json['id'],
-        userId: json['user_id'],
-        title: json['title'],
-        content: json['content'],
+        id: json['id'] as String,
+        userId: json['user_id'] as String?,
+        title: json['title'] as String?,
+        content: json['content'] as String?,
         mode: json['mode'] == 'free' ? CapsuleMode.free : CapsuleMode.aiAssisted,
         status: json['status'] == 'opened' ? CapsuleStatus.opened : CapsuleStatus.locked,
-        openDate: DateTime.parse(json['open_date']),
-        notificationEmail: json['notification_email'],
-        createdAt: DateTime.parse(json['created_at']),
-        openedAt: json['opened_at'] != null ? DateTime.parse(json['opened_at']) : null,
+        openDate: DateTime.parse(json['open_date'] as String),
+        notificationEmail: json['notification_email'] as String?,
+        createdAt: DateTime.parse(json['created_at'] as String),
+        openedAt: json['opened_at'] != null ? DateTime.parse(json['opened_at'] as String) : null,
         answers: (json['answers'] as List<dynamic>? ?? [])
             .map((a) => CapsuleAnswer.fromJson(a as Map<String, dynamic>))
+            .toList(),
+        reflections: (json['reflections'] as List<dynamic>? ?? [])
+            .map((r) => Reflection.fromJson(r as Map<String, dynamic>))
             .toList(),
       );
 
