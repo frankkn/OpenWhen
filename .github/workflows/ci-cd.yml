@@ -1,0 +1,141 @@
+name: CI / CD
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ─── CI：Backend ───────────────────────────────────────────────
+  backend-ci:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: openwhen
+          POSTGRES_PASSWORD: openwhen_dev
+          POSTGRES_DB: openwhen_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt pytest
+
+      - name: Write Firebase service account
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: echo "$FIREBASE_SERVICE_ACCOUNT_JSON" > backend/firebase-service-account.json
+
+      - name: Run Alembic migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://openwhen:openwhen_dev@localhost:5432/openwhen_test
+          FIREBASE_PROJECT_ID: openwhen-a527e
+          FIREBASE_SERVICE_ACCOUNT_PATH: ./firebase-service-account.json
+          SECRET_KEY: ci-secret-key-not-used-in-production
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: alembic upgrade head
+
+      - name: Run tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://openwhen:openwhen_dev@localhost:5432/openwhen_test
+          FIREBASE_PROJECT_ID: openwhen-a527e
+          FIREBASE_SERVICE_ACCOUNT_PATH: ./firebase-service-account.json
+          SECRET_KEY: ci-secret-key-not-used-in-production
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -d tests ]; then
+            pytest -q --tb=short
+          else
+            echo "No tests directory found, skipping."
+          fi
+
+  # ─── CI：Frontend ──────────────────────────────────────────────
+  frontend-ci:
+    name: Frontend Analyze
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          cache: true
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: frontend
+        run: flutter analyze --no-fatal-infos
+
+  # ─── CD：Deploy Backend → Railway ──────────────────────────────
+  deploy-backend:
+    name: Deploy Backend → Railway
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        working-directory: backend
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --detach
+
+  # ─── CD：Deploy Frontend → Firebase Hosting ────────────────────
+  deploy-frontend:
+    name: Deploy Frontend → Firebase Hosting
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          cache: true
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: flutter pub get
+
+      - name: Build Flutter Web
+        working-directory: frontend
+        run: flutter build web --release
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          projectId: openwhen-a527e
+          entryPoint: ./frontend

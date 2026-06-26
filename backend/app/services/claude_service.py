@@ -1,4 +1,4 @@
-import anthropic
+import google.generativeai as genai
 
 from app.config import settings
 from app.schemas.capsule import CapsuleAnswerIn
@@ -24,8 +24,12 @@ REFLECTION_SYSTEM_PROMPT = """你是一個溫柔的見證者。
 - 直接回傳問題清單，每個問題一行，前面加上數字編號（例如：1. ）"""
 
 
-def _client() -> anthropic.Anthropic:
-    return anthropic.Anthropic(api_key=settings.anthropic_api_key)
+def _model(system_prompt: str) -> genai.GenerativeModel:
+    genai.configure(api_key=settings.gemini_api_key)
+    return genai.GenerativeModel(
+        model_name="gemini-1.5-flash",
+        system_instruction=system_prompt,
+    )
 
 
 async def generate_letter(answers: list[CapsuleAnswerIn]) -> str:
@@ -33,26 +37,17 @@ async def generate_letter(answers: list[CapsuleAnswerIn]) -> str:
         f"Q{a.question_number}. {a.question_text}\nA: {a.answer_text or '（跳過）'}"
         for a in answers
     )
-
-    client = _client()
-    message = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=1024,
-        system=LETTER_SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": f"以下是使用者的回答：\n\n{qa_text}\n\n請整理成一封信。"}],
-    )
-    return message.content[0].text
+    model = _model(LETTER_SYSTEM_PROMPT)
+    response = model.generate_content(f"以下是使用者的回答：\n\n{qa_text}\n\n請整理成一封信。")
+    return response.text
 
 
 async def generate_reflections(letter_content: str) -> list[str]:
-    client = _client()
-    message = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=512,
-        system=REFLECTION_SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": f"這是使用者當年寫的信：\n\n{letter_content}\n\n請提出反思問題。"}],
+    model = _model(REFLECTION_SYSTEM_PROMPT)
+    response = model.generate_content(
+        f"這是使用者當年寫的信：\n\n{letter_content}\n\n請提出反思問題。"
     )
-    raw = message.content[0].text
+    raw = response.text
     questions = [
         line.strip()
         for line in raw.splitlines()
