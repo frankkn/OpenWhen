@@ -25,8 +25,25 @@ class SetOpenDateScreen extends StatefulWidget {
 class _SetOpenDateScreenState extends State<SetOpenDateScreen> {
   DateTime? _openDate;
   TimeOfDay _openTime = const TimeOfDay(hour: 8, minute: 0);
-  final _emailCtrl = TextEditingController();
+  bool _sendEmail = false;
+  bool _useLoginEmail = true;
+  final _customEmailCtrl = TextEditingController();
   bool _saving = false;
+
+  String? get _loginEmail => FirebaseAuth.instance.currentUser?.email;
+
+  String? get _notificationEmail {
+    if (!_sendEmail) return null;
+    if (_useLoginEmail) return _loginEmail;
+    final v = _customEmailCtrl.text.trim();
+    return v.isEmpty ? null : v;
+  }
+
+  @override
+  void dispose() {
+    _customEmailCtrl.dispose();
+    super.dispose();
+  }
 
   bool get _isAdmin =>
       FirebaseAuth.instance.currentUser?.email == 'admin@admin.com';
@@ -107,7 +124,7 @@ class _SetOpenDateScreenState extends State<SetOpenDateScreen> {
         content: widget.content,
         mode: widget.mode,
         openDate: _openDate!,
-        notificationEmail: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
+        notificationEmail: _notificationEmail,
         answers: widget.answers,
       );
       if (!mounted) return;
@@ -176,21 +193,49 @@ class _SetOpenDateScreenState extends State<SetOpenDateScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            Text(
-              '通知 Email（選填）',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '到期時寄 Email 通知',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Switch(
+                  value: _sendEmail,
+                  activeColor: AppColors.forestGreen,
+                  onChanged: (v) => setState(() => _sendEmail = v),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              '到期時寄通知給這個 email',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.warmGray),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(hintText: 'your@email.com'),
-            ),
+            if (_sendEmail) ...[
+              const SizedBox(height: 12),
+              RadioListTile<bool>(
+                contentPadding: EdgeInsets.zero,
+                activeColor: AppColors.forestGreen,
+                title: Text('使用登入的 Email'),
+                subtitle: Text(_loginEmail ?? '', style: TextStyle(color: AppColors.warmGray, fontSize: 13)),
+                value: true,
+                groupValue: _useLoginEmail,
+                onChanged: (v) => setState(() => _useLoginEmail = v!),
+              ),
+              RadioListTile<bool>(
+                contentPadding: EdgeInsets.zero,
+                activeColor: AppColors.forestGreen,
+                title: const Text('使用其他 Email'),
+                value: false,
+                groupValue: _useLoginEmail,
+                onChanged: (v) => setState(() => _useLoginEmail = v!),
+              ),
+              if (!_useLoginEmail) ...[
+                const SizedBox(height: 4),
+                TextField(
+                  controller: _customEmailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(hintText: 'your@email.com'),
+                ),
+              ],
+            ],
             const SizedBox(height: 48),
             FilledButton(
               onPressed: _saving ? null : _save,

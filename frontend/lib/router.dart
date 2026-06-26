@@ -5,6 +5,7 @@ import 'package:openwhen/screens/auth/login_screen.dart';
 import 'package:openwhen/screens/capsule/capsule_detail_screen.dart';
 import 'package:openwhen/screens/capsule/new_capsule_screen.dart';
 import 'package:openwhen/screens/home/home_screen.dart';
+import 'package:openwhen/screens/settings/instructions_screen.dart';
 
 class _AuthNotifier extends ChangeNotifier {
   _AuthNotifier() {
@@ -30,5 +31,6 @@ final router = GoRouter(
       path: '/capsule/:id',
       builder: (_, state) => CapsuleDetailScreen(capsuleId: state.pathParameters['id']!),
     ),
+    GoRoute(path: '/instructions', builder: (_, __) => const InstructionsScreen()),
   ],
 );

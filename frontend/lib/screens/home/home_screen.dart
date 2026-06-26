@@ -10,6 +10,60 @@ import 'package:openwhen/theme/app_theme.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
+  void _openSettings(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.paperWhite,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36, height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.warmGray.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text('版本'),
+                trailing: Text('v0.0.1',
+                    style: TextStyle(color: AppColors.warmGray, fontSize: 14)),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                leading: const Icon(Icons.menu_book_outlined),
+                title: const Text('使用說明'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/instructions');
+                },
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                leading: Icon(Icons.logout, color: Colors.red.shade400),
+                title: Text('登出', style: TextStyle(color: Colors.red.shade400)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  ref.invalidate(capsulesProvider);
+                  await AuthService.signOut();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final capsulesAsync = ref.watch(capsulesProvider);
@@ -19,6 +73,10 @@ class HomeScreen extends ConsumerWidget {
         title: const Text('OpenWhen'),
         backgroundColor: AppColors.paperWhite,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => _openSettings(context, ref),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
