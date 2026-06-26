@@ -114,7 +114,7 @@ class _WriteAiScreenState extends State<WriteAiScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           LinearProgressIndicator(
             value: (_current + 1) / _questions.length,
-            backgroundColor: AppColors.warmBrown.withOpacity(0.15),
+            backgroundColor: AppColors.warmBrown.withValues(alpha: 0.15),
             color: AppColors.forestGreen,
           ),
           const SizedBox(height: 32),
@@ -131,7 +131,7 @@ class _WriteAiScreenState extends State<WriteAiScreen> {
               autofocus: true,
               decoration: InputDecoration(
                 hintText: '（可以跳過）',
-                hintStyle: TextStyle(color: AppColors.warmGray.withOpacity(0.6)),
+                hintStyle: TextStyle(color: AppColors.warmGray.withValues(alpha: 0.6)),
               ),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.8),
               textAlignVertical: TextAlignVertical.top,

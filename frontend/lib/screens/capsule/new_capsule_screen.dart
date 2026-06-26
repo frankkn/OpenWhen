@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:openwhen/screens/capsule/write_free_screen.dart';
 import 'package:openwhen/screens/capsule/write_ai_screen.dart';
 import 'package:openwhen/theme/app_theme.dart';
@@ -54,7 +53,7 @@ class _ModeCard extends StatelessWidget {
       color: AppColors.paperWhite,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: AppColors.warmBrown.withOpacity(0.25)),
+        side: BorderSide(color: AppColors.warmBrown.withValues(alpha: 0.25)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: InkWell(

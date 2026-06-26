@@ -63,7 +63,7 @@ class _WriteFreeScreenState extends State<WriteFreeScreen> {
               expands: true,
               decoration: InputDecoration(
                 hintText: '親愛的未來的我，',
-                hintStyle: TextStyle(color: AppColors.warmGray.withOpacity(0.6)),
+                hintStyle: TextStyle(color: AppColors.warmGray.withValues(alpha: 0.6)),
                 border: InputBorder.none,
               ),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 2.0),

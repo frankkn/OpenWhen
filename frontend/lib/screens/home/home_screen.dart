@@ -27,7 +27,7 @@ class HomeScreen extends ConsumerWidget {
                 width: 36, height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.warmGray.withOpacity(0.3),
+                  color: AppColors.warmGray.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -125,7 +125,7 @@ class _CapsuleCard extends StatelessWidget {
       color: AppColors.paperWhite,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: AppColors.warmBrown.withOpacity(0.2)),
+        side: BorderSide(color: AppColors.warmBrown.withValues(alpha: 0.2)),
         borderRadius: BorderRadius.circular(4),
       ),
       margin: const EdgeInsets.only(bottom: 12),
@@ -186,7 +186,7 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.mail_outline, size: 64, color: AppColors.warmGray.withOpacity(0.5)),
+          Icon(Icons.mail_outline, size: 64, color: AppColors.warmGray.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text('還沒有膠囊', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.warmGray)),
           const SizedBox(height: 8),

@@ -154,7 +154,7 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: AppColors.paperWhite,
-                    border: Border.all(color: AppColors.warmBrown.withOpacity(0.2)),
+                    border: Border.all(color: AppColors.warmBrown.withValues(alpha: 0.2)),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -179,7 +179,7 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: AppColors.paperWhite,
-                    border: Border.all(color: AppColors.warmBrown.withOpacity(0.2)),
+                    border: Border.all(color: AppColors.warmBrown.withValues(alpha: 0.2)),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(

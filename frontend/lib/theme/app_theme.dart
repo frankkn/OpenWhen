@@ -49,11 +49,11 @@ class AppTheme {
           fillColor: AppColors.paperWhite,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(4),
-            borderSide: BorderSide(color: AppColors.warmBrown.withOpacity(0.3)),
+            borderSide: BorderSide(color: AppColors.warmBrown.withValues(alpha: 0.3)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(4),
-            borderSide: BorderSide(color: AppColors.warmBrown.withOpacity(0.3)),
+            borderSide: BorderSide(color: AppColors.warmBrown.withValues(alpha: 0.3)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(4),

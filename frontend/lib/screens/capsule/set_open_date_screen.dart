@@ -180,7 +180,7 @@ class _SetOpenDateScreenState extends State<SetOpenDateScreen> {
                   label: Text(p.$1),
                   selected: selected,
                   onSelected: (_) => setState(() => _openDate = date),
-                  selectedColor: AppColors.forestGreen.withOpacity(0.15),
+                  selectedColor: AppColors.forestGreen.withValues(alpha: 0.15),
                 );
               }).toList(),
             ),
@@ -203,6 +203,7 @@ class _SetOpenDateScreenState extends State<SetOpenDateScreen> {
                 ),
                 Switch(
                   value: _sendEmail,
+                  // ignore: deprecated_member_use
                   activeColor: AppColors.forestGreen,
                   onChanged: (v) => setState(() => _sendEmail = v),
                 ),
@@ -210,21 +211,27 @@ class _SetOpenDateScreenState extends State<SetOpenDateScreen> {
             ),
             if (_sendEmail) ...[
               const SizedBox(height: 12),
+              // ignore: deprecated_member_use
               RadioListTile<bool>(
                 contentPadding: EdgeInsets.zero,
                 activeColor: AppColors.forestGreen,
                 title: Text('使用登入的 Email'),
                 subtitle: Text(_loginEmail ?? '', style: TextStyle(color: AppColors.warmGray, fontSize: 13)),
                 value: true,
+                // ignore: deprecated_member_use
                 groupValue: _useLoginEmail,
+                // ignore: deprecated_member_use
                 onChanged: (v) => setState(() => _useLoginEmail = v!),
               ),
+              // ignore: deprecated_member_use
               RadioListTile<bool>(
                 contentPadding: EdgeInsets.zero,
                 activeColor: AppColors.forestGreen,
                 title: const Text('使用其他 Email'),
                 value: false,
+                // ignore: deprecated_member_use
                 groupValue: _useLoginEmail,
+                // ignore: deprecated_member_use
                 onChanged: (v) => setState(() => _useLoginEmail = v!),
               ),
               if (!_useLoginEmail) ...[
