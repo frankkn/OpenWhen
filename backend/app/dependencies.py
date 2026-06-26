@@ -14,9 +14,19 @@ async def get_current_user(
     db: Session = Depends(get_db),
 ) -> User:
     token = credentials.credentials
-    decoded = verify_firebase_token(token)
+    try:
+        decoded = verify_firebase_token(token)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
     user = db.query(User).filter(User.firebase_uid == decoded["uid"]).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="使用者不存在，請先登入")
+        user = User(
+            firebase_uid=decoded["uid"],
+            email=decoded.get("email", ""),
+            display_name=decoded.get("name"),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     return user

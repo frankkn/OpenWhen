@@ -36,7 +36,7 @@ async def generate_letter(answers: list[CapsuleAnswerIn]) -> str:
     )
     client = _client()
     response = client.models.generate_content(
-        model="gemini-1.5-flash",
+        model="gemini-2.0-flash",
         contents=f"以下是使用者的回答：\n\n{qa_text}\n\n請整理成一封信。",
         config=types.GenerateContentConfig(
             system_instruction=LETTER_SYSTEM_PROMPT,
@@ -49,7 +49,7 @@ async def generate_letter(answers: list[CapsuleAnswerIn]) -> str:
 async def generate_reflections(letter_content: str) -> list[str]:
     client = _client()
     response = client.models.generate_content(
-        model="gemini-1.5-flash",
+        model="gemini-2.0-flash",
         contents=f"這是使用者當年寫的信：\n\n{letter_content}\n\n請提出反思問題。",
         config=types.GenerateContentConfig(
             system_instruction=REFLECTION_SYSTEM_PROMPT,

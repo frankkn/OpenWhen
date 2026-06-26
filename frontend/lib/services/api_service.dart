@@ -17,6 +17,7 @@ class ApiService {
 
   Future<Options> _authOptions() async {
     final token = await _getToken();
+    if (token == null) throw Exception('尚未登入');
     return Options(headers: {'Authorization': 'Bearer $token'});
   }
 
@@ -45,7 +46,7 @@ class ApiService {
       'title': title,
       'content': content,
       'mode': mode,
-      'open_date': openDate.toIso8601String().split('T').first,
+      'open_date': openDate.toIso8601String(),
       'notification_email': notificationEmail,
       'answers': answers,
     });

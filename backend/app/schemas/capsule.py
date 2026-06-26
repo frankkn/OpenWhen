@@ -1,5 +1,5 @@
-from datetime import datetime, date
-from pydantic import BaseModel, field_validator
+from datetime import datetime
+from pydantic import BaseModel
 from app.models.capsule import CapsuleMode, CapsuleStatus
 
 
@@ -20,22 +20,9 @@ class CapsuleCreate(BaseModel):
     title: str | None = None
     content: str
     mode: CapsuleMode
-    open_date: date
+    open_date: datetime
     notification_email: str | None = None
     answers: list[CapsuleAnswerIn] = []
-
-    @field_validator("open_date")
-    @classmethod
-    def open_date_must_be_future(cls, v: date) -> date:
-        from datetime import date as date_type
-        min_date = date_type.today()
-        from dateutil.relativedelta import relativedelta
-        min_date = date_type.today()
-        import datetime as dt
-        min_allowed = dt.date.today() + dt.timedelta(days=90)
-        if v < min_allowed:
-            raise ValueError("開封日期最少需設定 3 個月後")
-        return v
 
 
 class CapsuleOut(BaseModel):
@@ -45,7 +32,7 @@ class CapsuleOut(BaseModel):
     content: str
     mode: CapsuleMode
     status: CapsuleStatus
-    open_date: date
+    open_date: datetime
     notification_email: str | None
     created_at: datetime
     opened_at: datetime | None
@@ -59,7 +46,7 @@ class CapsuleListItem(BaseModel):
     title: str | None
     mode: CapsuleMode
     status: CapsuleStatus
-    open_date: date
+    open_date: datetime
     created_at: datetime
 
     model_config = {"from_attributes": True}

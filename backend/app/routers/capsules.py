@@ -14,6 +14,24 @@ from app.schemas.capsule import (
 
 router = APIRouter(prefix="/capsules", tags=["capsules"])
 
+ADMIN_EMAIL = "admin@admin.com"
+
+
+def _is_admin(user: User) -> bool:
+    return user.email == ADMIN_EMAIL
+
+
+def _validate_open_date(open_date: datetime.datetime, user: User) -> None:
+    if _is_admin(user):
+        return
+    now = datetime.datetime.now()
+    min_date = now + datetime.timedelta(days=30)
+    max_date = now + datetime.timedelta(days=365 * 100)
+    if open_date < min_date:
+        raise HTTPException(status_code=400, detail="開封日期最少需設定 1 個月後")
+    if open_date > max_date:
+        raise HTTPException(status_code=400, detail="開封日期最多設定 100 年後")
+
 
 @router.get("", response_model=list[CapsuleListItem])
 def list_capsules(
@@ -29,6 +47,8 @@ def create_capsule(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    _validate_open_date(body.open_date, current_user)
+
     capsule = Capsule(
         user_id=current_user.id,
         title=body.title,
@@ -60,8 +80,7 @@ def get_capsule(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    capsule = _get_owned_capsule(capsule_id, current_user.id, db)
-    return capsule
+    return _get_owned_capsule(capsule_id, current_user.id, db)
 
 
 @router.post("/{capsule_id}/open", response_model=CapsuleOut)
@@ -75,10 +94,14 @@ def open_capsule(
     if capsule.status == CapsuleStatus.opened:
         raise HTTPException(status_code=400, detail="膠囊已經開封過了")
 
-    today = datetime.date.today()
-    if capsule.open_date > today:
-        days_left = (capsule.open_date - today).days
-        raise HTTPException(status_code=400, detail=f"還沒到開封日期，還有 {days_left} 天")
+    if not _is_admin(current_user):
+        now = datetime.datetime.now()
+        if capsule.open_date > now:
+            delta = capsule.open_date - now
+            days_left = delta.days
+            hours_left = delta.seconds // 3600
+            detail = f"還沒到開封時間，還有 {days_left} 天 {hours_left} 小時" if days_left > 0 else f"還沒到開封時間，還有 {hours_left} 小時"
+            raise HTTPException(status_code=400, detail=detail)
 
     capsule.status = CapsuleStatus.opened
     capsule.opened_at = datetime.datetime.now(datetime.timezone.utc)
@@ -99,7 +122,6 @@ def save_reflections(
     if capsule.status != CapsuleStatus.opened:
         raise HTTPException(status_code=400, detail="膠囊尚未開封，無法儲存反思")
 
-    # 清除舊的反思記錄後重新儲存
     db.query(Reflection).filter(Reflection.capsule_id == capsule_id).delete()
 
     new_reflections = []

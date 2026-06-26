@@ -22,8 +22,8 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
+              ref.invalidate(capsulesProvider);
               await AuthService.signOut();
-              if (context.mounted) context.go('/login');
             },
           ),
         ],

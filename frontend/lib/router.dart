@@ -6,8 +6,15 @@ import 'package:openwhen/screens/capsule/capsule_detail_screen.dart';
 import 'package:openwhen/screens/capsule/new_capsule_screen.dart';
 import 'package:openwhen/screens/home/home_screen.dart';
 
+class _AuthNotifier extends ChangeNotifier {
+  _AuthNotifier() {
+    FirebaseAuth.instance.authStateChanges().listen((_) => notifyListeners());
+  }
+}
+
 final router = GoRouter(
   initialLocation: '/',
+  refreshListenable: _AuthNotifier(),
   redirect: (context, state) {
     final loggedIn = FirebaseAuth.instance.currentUser != null;
     final isLoginRoute = state.matchedLocation == '/login';
