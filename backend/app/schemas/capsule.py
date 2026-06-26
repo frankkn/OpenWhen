@@ -66,5 +66,6 @@ class CapsuleListItem(BaseModel):
     status: CapsuleStatus
     open_date: datetime
     created_at: datetime
+    opened_at: datetime | None = None
 
     model_config = {"from_attributes": True}

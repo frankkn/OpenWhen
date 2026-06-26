@@ -105,7 +105,7 @@ class _CapsuleCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               isOpened
-                  ? '已於 ${fmt.format(capsule.openedAt!)} 開封'
+                  ? '已於 ${capsule.openedAt != null ? fmt.format(capsule.openedAt!) : fmt.format(capsule.openDate)} 開封'
                   : !capsule.isOpenable
                       ? '${capsule.daysUntilOpen} 天後可開封（${fmt.format(capsule.openDate)}）'
                       : '可以開封了！',
