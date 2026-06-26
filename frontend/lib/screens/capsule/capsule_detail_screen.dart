@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:openwhen/models/capsule.dart';
 import 'package:openwhen/providers/capsule_provider.dart';
@@ -17,6 +18,7 @@ class CapsuleDetailScreen extends ConsumerStatefulWidget {
 class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
   bool _opening = false;
   bool _generating = false;
+  bool _deleting = false;
   List<Reflection>? _reflections;
   List<TextEditingController>? _reflectionControllers;
 
@@ -33,6 +35,36 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
       _reflectionControllers = capsule.reflections
           .map((r) => TextEditingController(text: r.answerText ?? ''))
           .toList();
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('刪除膠囊'),
+        content: const Text('刪除後無法復原，確定要刪除這個膠囊嗎？'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('刪除'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _deleting = true);
+    try {
+      await ApiService().deleteCapsule(widget.capsuleId);
+      if (!mounted) return;
+      ref.invalidate(capsulesProvider);
+      context.go('/');
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('刪除失敗：$e')));
+    } finally {
+      if (mounted) setState(() => _deleting = false);
     }
   }
 
@@ -87,7 +119,19 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('膠囊詳情'), backgroundColor: AppColors.paperWhite),
+      appBar: AppBar(
+        title: const Text('膠囊詳情'),
+        backgroundColor: AppColors.paperWhite,
+        actions: [
+          IconButton(
+            icon: _deleting
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.delete_outline),
+            onPressed: _deleting ? null : _confirmDelete,
+            color: Colors.red.shade400,
+          ),
+        ],
+      ),
       body: capsuleAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('載入失敗：$e')),

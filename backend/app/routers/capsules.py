@@ -83,6 +83,17 @@ def get_capsule(
     return _get_owned_capsule(capsule_id, current_user.id, db)
 
 
+@router.delete("/{capsule_id}", status_code=204)
+def delete_capsule(
+    capsule_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    capsule = _get_owned_capsule(capsule_id, current_user.id, db)
+    db.delete(capsule)
+    db.commit()
+
+
 @router.post("/{capsule_id}/open", response_model=CapsuleOut)
 def open_capsule(
     capsule_id: str,

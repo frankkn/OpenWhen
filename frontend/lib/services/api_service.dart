@@ -59,6 +59,11 @@ class ApiService {
     return Capsule.fromJson(res.data as Map<String, dynamic>);
   }
 
+  Future<void> deleteCapsule(String id) async {
+    final opts = await _authOptions();
+    await _dio.delete('/capsules/$id', options: opts);
+  }
+
   Future<Capsule> openCapsule(String id) async {
     final opts = await _authOptions();
     final res = await _dio.post('/capsules/$id/open', options: opts);
