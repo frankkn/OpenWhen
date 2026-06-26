@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     firebase_project_id: str
     firebase_service_account_path: str = "./firebase-service-account.json"
     gemini_api_key: str
+    resend_api_key: str = ""
     secret_key: str = "change-me-in-production"
     allowed_origins: str = "http://localhost:3000,http://localhost:8080"
 

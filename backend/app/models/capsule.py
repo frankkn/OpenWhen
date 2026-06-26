@@ -31,6 +31,7 @@ class Capsule(Base):
     notification_email: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    notification_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User", back_populates="capsules")
     answers = relationship("CapsuleAnswer", back_populates="capsule", cascade="all, delete-orphan", order_by="CapsuleAnswer.question_number")
