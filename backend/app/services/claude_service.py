@@ -1,4 +1,5 @@
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from app.config import settings
 from app.schemas.capsule import CapsuleAnswerIn
@@ -24,12 +25,8 @@ REFLECTION_SYSTEM_PROMPT = """你是一個溫柔的見證者。
 - 直接回傳問題清單，每個問題一行，前面加上數字編號（例如：1. ）"""
 
 
-def _model(system_prompt: str) -> genai.GenerativeModel:
-    genai.configure(api_key=settings.gemini_api_key)
-    return genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        system_instruction=system_prompt,
-    )
+def _client() -> genai.Client:
+    return genai.Client(api_key=settings.gemini_api_key)
 
 
 async def generate_letter(answers: list[CapsuleAnswerIn]) -> str:
@@ -37,15 +34,27 @@ async def generate_letter(answers: list[CapsuleAnswerIn]) -> str:
         f"Q{a.question_number}. {a.question_text}\nA: {a.answer_text or '（跳過）'}"
         for a in answers
     )
-    model = _model(LETTER_SYSTEM_PROMPT)
-    response = model.generate_content(f"以下是使用者的回答：\n\n{qa_text}\n\n請整理成一封信。")
+    client = _client()
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=f"以下是使用者的回答：\n\n{qa_text}\n\n請整理成一封信。",
+        config=types.GenerateContentConfig(
+            system_instruction=LETTER_SYSTEM_PROMPT,
+            max_output_tokens=1024,
+        ),
+    )
     return response.text
 
 
 async def generate_reflections(letter_content: str) -> list[str]:
-    model = _model(REFLECTION_SYSTEM_PROMPT)
-    response = model.generate_content(
-        f"這是使用者當年寫的信：\n\n{letter_content}\n\n請提出反思問題。"
+    client = _client()
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=f"這是使用者當年寫的信：\n\n{letter_content}\n\n請提出反思問題。",
+        config=types.GenerateContentConfig(
+            system_instruction=REFLECTION_SYSTEM_PROMPT,
+            max_output_tokens=512,
+        ),
     )
     raw = response.text
     questions = [
