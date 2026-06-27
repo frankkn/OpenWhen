@@ -3,6 +3,7 @@ import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User
@@ -14,11 +15,9 @@ from app.schemas.capsule import (
 
 router = APIRouter(prefix="/capsules", tags=["capsules"])
 
-ADMIN_EMAIL = "admin@admin.com"
-
 
 def _is_admin(user: User) -> bool:
-    return user.email == ADMIN_EMAIL
+    return bool(settings.admin_email) and user.email == settings.admin_email
 
 
 def _ensure_aware(dt: datetime.datetime) -> datetime.datetime:

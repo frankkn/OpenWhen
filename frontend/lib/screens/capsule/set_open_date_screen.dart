@@ -207,6 +207,7 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
             const SizedBox(height: 8),
             TextField(
               controller: _titleCtrl,
+              maxLength: 200,
               decoration: InputDecoration(
                 hintText: _openDate != null
                     ? '預設為「致 ${_openDate!.year}年${_openDate!.month}月${_openDate!.day}日 的我」'
