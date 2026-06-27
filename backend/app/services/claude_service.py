@@ -1,10 +1,13 @@
 import asyncio
+import logging
 
 from google import genai
 from google.genai import types
 
 from app.config import settings
 from app.schemas.capsule import CapsuleAnswerIn
+
+logger = logging.getLogger(__name__)
 
 
 class AIServiceError(Exception):
@@ -48,6 +51,7 @@ def _generate(system_prompt: str, contents: str, max_tokens: int) -> str:
             ),
         )
     except Exception as e:
+        logger.exception("Gemini generate_content failed")
         raise AIServiceError(f"AI 服務暫時無法使用：{e}")
 
     text = response.text
