@@ -1,9 +1,13 @@
+import smtplib
 from datetime import datetime, timezone, timedelta
+from email.message import EmailMessage
+from email.utils import formataddr
 
-import resend
 from app.config import settings
 
-FROM_ADDRESS = "OpenWhen <onboarding@resend.dev>"
+FROM_NAME = "OpenWhen"
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = 587
 
 # 顯示用時區：與前端 toLocal() 對齊（台灣使用者 UTC+8），
 # 避免接近午夜時 email 的日期比 app 內顯示早一天。
@@ -28,10 +32,9 @@ def send_capsule_ready_email(
     open_date: datetime,
     created_at_str: str,
 ) -> None:
-    if not settings.resend_api_key:
+    if not settings.gmail_address or not settings.gmail_app_password:
         return
 
-    resend.api_key = settings.resend_api_key
     title_display = _display_title(capsule_title, open_date)
 
     html = f"""
@@ -58,9 +61,17 @@ def send_capsule_ready_email(
     </div>
     """
 
-    resend.Emails.send({
-        "from": FROM_ADDRESS,
-        "to": [to],
-        "subject": f"🔓 {title_display}可以打開了",
-        "html": html,
-    })
+    msg = EmailMessage()
+    msg["Subject"] = f"🔓 {title_display}可以打開了"
+    msg["From"] = formataddr((FROM_NAME, settings.gmail_address))
+    msg["To"] = to
+    msg.set_content(
+        f"{title_display} 設定的開封時間到了。\n"
+        f"登入 OpenWhen 讀一讀當年的自己寫下的話：https://openwhen-a527e.web.app"
+    )
+    msg.add_alternative(html, subtype="html")
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+        server.starttls()
+        server.login(settings.gmail_address, settings.gmail_app_password)
+        server.send_message(msg)

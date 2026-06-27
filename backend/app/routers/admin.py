@@ -30,7 +30,7 @@ def get_notification_status(
     if not capsule:
         raise HTTPException(status_code=404, detail="信件不存在")
 
-    resend_configured = bool(settings.resend_api_key)
+    mail_configured = bool(settings.gmail_address and settings.gmail_app_password)
 
     return {
         "capsule_id": capsule_id,
@@ -38,18 +38,18 @@ def get_notification_status(
         "notification_sent_at": capsule.notification_sent_at,
         "open_date": capsule.open_date,
         "status": capsule.status,
-        "resend_configured": resend_configured,
-        "diagnosis": _diagnose(capsule, resend_configured),
+        "mail_configured": mail_configured,
+        "diagnosis": _diagnose(capsule, mail_configured),
     }
 
 
-def _diagnose(capsule: Capsule, resend_configured: bool) -> list[str]:
+def _diagnose(capsule: Capsule, mail_configured: bool) -> list[str]:
     from datetime import datetime, timezone
     issues = []
     if not capsule.notification_email:
         issues.append("notification_email 未設定：建立信件時沒有開啟 Email 通知開關")
-    if not resend_configured:
-        issues.append("RESEND_API_KEY 未設定：Railway 環境變數缺少此設定")
+    if not mail_configured:
+        issues.append("Gmail SMTP 未設定：Railway 缺少 GMAIL_ADDRESS 或 GMAIL_APP_PASSWORD")
     if capsule.notification_sent_at:
         issues.append(f"通知已於 {capsule.notification_sent_at} 送出（不會重複寄）")
     now = datetime.now(timezone.utc)
