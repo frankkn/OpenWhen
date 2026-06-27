@@ -22,7 +22,7 @@ def send_capsule_ready_email(to: str, capsule_title: str | None, created_at_str:
         並回答 AI 見證者的幾個反思問題。
       </p>
       <div style="margin: 32px 0; text-align: center;">
-        <a href="http://localhost:3000"
+        <a href="https://openwhen-a527e.web.app"
            style="background: #2D4A3E; color: white; padding: 12px 32px;
                   border-radius: 4px; text-decoration: none; font-size: 15px;">
           打開我的膠囊
