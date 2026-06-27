@@ -7,4 +7,4 @@ const firebaseMessagingSenderId = '435815934912';
 const firebaseAppId = '1:435815934912:web:47e8b653c8130ccf15f625';
 
 // Backend API
-const apiBaseUrl = 'http://localhost:8000';
+const apiBaseUrl = 'https://openwhen-production.up.railway.app';
