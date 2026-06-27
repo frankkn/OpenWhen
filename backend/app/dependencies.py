@@ -1,5 +1,6 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -21,12 +22,16 @@ async def get_current_user(
 
     user = db.query(User).filter(User.firebase_uid == decoded["uid"]).first()
     if not user:
-        user = User(
-            firebase_uid=decoded["uid"],
-            email=decoded.get("email", ""),
-            display_name=decoded.get("name"),
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+        try:
+            user = User(
+                firebase_uid=decoded["uid"],
+                email=decoded.get("email", ""),
+                display_name=decoded.get("name"),
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        except IntegrityError:
+            db.rollback()
+            user = db.query(User).filter(User.firebase_uid == decoded["uid"]).first()
     return user

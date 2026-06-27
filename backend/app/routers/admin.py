@@ -26,11 +26,9 @@ def get_notification_status(
     db: Session = Depends(get_db),
 ):
     """查看指定信件的通知狀態（僅限信件擁有者）。"""
-    capsule = db.query(Capsule).filter(Capsule.id == capsule_id).first()
+    capsule = db.query(Capsule).filter(Capsule.id == capsule_id, Capsule.user_id == user.id).first()
     if not capsule:
         raise HTTPException(status_code=404, detail="信件不存在")
-    if capsule.user_id != user.id:
-        raise HTTPException(status_code=403, detail="無權限")
 
     resend_configured = bool(settings.resend_api_key)
 

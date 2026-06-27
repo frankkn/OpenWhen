@@ -117,9 +117,16 @@ def open_capsule(
         open_date = _ensure_aware(capsule.open_date)
         if open_date > now:
             delta = open_date - now
-            days_left = delta.days
-            hours_left = delta.seconds // 3600
-            detail = f"還沒到開封時間，還有 {days_left} 天 {hours_left} 小時" if days_left > 0 else f"還沒到開封時間，還有 {hours_left} 小時"
+            total_secs = int(delta.total_seconds())
+            days_left = total_secs // 86400
+            hours_left = (total_secs % 86400) // 3600
+            mins_left = (total_secs % 3600) // 60
+            if days_left > 0:
+                detail = f"還沒到開封時間，還有 {days_left} 天 {hours_left} 小時"
+            elif hours_left > 0:
+                detail = f"還沒到開封時間，還有 {hours_left} 小時"
+            else:
+                detail = f"還沒到開封時間，還有 {mins_left} 分鐘"
             raise HTTPException(status_code=400, detail=detail)
 
     capsule.status = CapsuleStatus.opened
