@@ -12,7 +12,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.post("/check-notifications")
 def trigger_check_notifications(user: User = Depends(get_current_user)):
-    """手動觸發到期膠囊通知檢查（僅限管理員，用於測試）。"""
+    """手動觸發到期信件通知檢查（僅限管理員，用於測試）。"""
     admin_email = settings.admin_email
     if not admin_email or user.email != admin_email:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="僅限管理員")
@@ -25,10 +25,10 @@ def get_notification_status(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """查看指定膠囊的通知狀態（僅限膠囊擁有者）。"""
+    """查看指定信件的通知狀態（僅限信件擁有者）。"""
     capsule = db.query(Capsule).filter(Capsule.id == capsule_id).first()
     if not capsule:
-        raise HTTPException(status_code=404, detail="膠囊不存在")
+        raise HTTPException(status_code=404, detail="信件不存在")
     if capsule.user_id != user.id:
         raise HTTPException(status_code=403, detail="無權限")
 
@@ -49,7 +49,7 @@ def _diagnose(capsule: Capsule, resend_configured: bool) -> list[str]:
     from datetime import datetime, timezone
     issues = []
     if not capsule.notification_email:
-        issues.append("notification_email 未設定：建立膠囊時沒有開啟 Email 通知開關")
+        issues.append("notification_email 未設定：建立信件時沒有開啟 Email 通知開關")
     if not resend_configured:
         issues.append("RESEND_API_KEY 未設定：Railway 環境變數缺少此設定")
     if capsule.notification_sent_at:

@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="OpenWhen API",
-    description="時光膠囊信件 Backend",
+    description="寫給未來自己的信 Backend",
     version="0.1.0",
     lifespan=lifespan,
 )

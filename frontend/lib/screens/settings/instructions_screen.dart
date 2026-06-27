@@ -16,7 +16,7 @@ class InstructionsScreen extends StatelessWidget {
             _Section(
               title: '什麼是 OpenWhen？',
               content:
-                  'OpenWhen 是一個時光膠囊信件 App。你可以寫一封信給未來的自己，等到設定的日期才能開封。開封時，AI 扮演溫柔的見證者，根據信的內容提問，幫你反思當年的自己。',
+                  'OpenWhen 讓你寫一封信給未來的自己，等到設定的日期才能開封。開封時，AI 扮演溫柔的見證者，根據信的內容提問，幫你反思當年的自己。',
             ),
             const SizedBox(height: 28),
             _SectionTitle(text: '如何寫一封信'),
@@ -58,7 +58,7 @@ class InstructionsScreen extends StatelessWidget {
               number: '2',
               title: '開封信件',
               bullets: const [
-                '點進膠囊詳情頁，按「開封這封信」',
+                '點進信件詳情頁，按「開封這封信」',
                 '信件全文會完整顯示',
               ],
             ),
@@ -68,14 +68,14 @@ class InstructionsScreen extends StatelessWidget {
               bullets: const [
                 'AI 見證者根據信的內容提出幾個反思問題',
                 '回答問題（選填），按「儲存反思」記錄你的感受',
-                '下次再進入膠囊，仍可查看或修改回答',
+                '下次再進入這封信，仍可查看或修改回答',
               ],
             ),
             const SizedBox(height: 28),
             _Section(
               title: '注意事項',
               content:
-                  '• 封存後無法修改信件內容\n• 膠囊只有自己可以看見\n• 刪除膠囊後無法復原',
+                  '• 封存後無法修改信件內容\n• 信件只有自己可以看見\n• 刪除後無法復原',
             ),
             const SizedBox(height: 32),
           ],

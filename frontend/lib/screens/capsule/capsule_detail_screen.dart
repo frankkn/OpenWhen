@@ -42,8 +42,8 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('刪除膠囊'),
-        content: const Text('刪除後無法復原，確定要刪除這個膠囊嗎？'),
+        title: const Text('刪除信件'),
+        content: const Text('刪除後無法復原，確定要刪除這封信嗎？'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
           TextButton(
@@ -120,7 +120,7 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('膠囊詳情'),
+        title: const Text('信件詳情'),
         backgroundColor: AppColors.paperWhite,
         actions: [
           IconButton(

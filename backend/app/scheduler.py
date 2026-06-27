@@ -12,7 +12,7 @@ _scheduler = BackgroundScheduler()
 
 
 def check_due_capsules() -> dict:
-    """檢查到期且需通知的膠囊並寄信。回傳 {'sent': N, 'failed': N}。"""
+    """檢查到期且需通知的信件並寄信。回傳 {'sent': N, 'failed': N}。"""
     db: Session = SessionLocal()
     sent = 0
     failed = 0
@@ -48,6 +48,7 @@ def check_due_capsules() -> dict:
                 send_capsule_ready_email(
                     to=capsule.notification_email,
                     capsule_title=capsule.title,
+                    open_date=capsule.open_date,
                     created_at_str=created_str,
                 )
                 sent += 1

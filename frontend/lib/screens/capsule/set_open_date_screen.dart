@@ -134,9 +134,9 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
         answers: widget.answers,
       );
       if (!mounted) return;
-      ref.invalidate(capsulesProvider); // 讓首頁重新抓列表，回去馬上看到新膠囊
+      ref.invalidate(capsulesProvider); // 讓首頁重新抓列表，回去馬上看到新的信
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('膠囊已封存！')),
+        const SnackBar(content: Text('信件已封存！')),
       );
       context.go('/');
     } catch (e) {

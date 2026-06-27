@@ -209,7 +209,7 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(Icons.mail_outline, size: 64, color: AppColors.warmGray.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
-          Text('還沒有膠囊', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.warmGray)),
+          Text('還沒有信件', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.warmGray)),
           const SizedBox(height: 8),
           Text('寫一封信給未來的自己吧', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.warmGray)),
           const SizedBox(height: 24),

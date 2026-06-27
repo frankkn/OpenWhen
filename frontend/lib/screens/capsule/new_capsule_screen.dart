@@ -9,7 +9,7 @@ class NewCapsuleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('新增膠囊'), backgroundColor: AppColors.paperWhite),
+      appBar: AppBar(title: const Text('寫一封信'), backgroundColor: AppColors.paperWhite),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(

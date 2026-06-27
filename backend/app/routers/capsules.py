@@ -110,7 +110,7 @@ def open_capsule(
     capsule = _get_owned_capsule(capsule_id, current_user.id, db)
 
     if capsule.status == CapsuleStatus.opened:
-        raise HTTPException(status_code=400, detail="膠囊已經開封過了")
+        raise HTTPException(status_code=400, detail="這封信已經開封過了")
 
     if not _is_admin(current_user):
         now = datetime.datetime.now(datetime.timezone.utc)
@@ -139,7 +139,7 @@ def save_reflections(
     capsule = _get_owned_capsule(capsule_id, current_user.id, db)
 
     if capsule.status != CapsuleStatus.opened:
-        raise HTTPException(status_code=400, detail="膠囊尚未開封，無法儲存反思")
+        raise HTTPException(status_code=400, detail="這封信尚未開封，無法儲存反思")
 
     db.query(Reflection).filter(Reflection.capsule_id == capsule_id).delete()
 
@@ -162,5 +162,5 @@ def save_reflections(
 def _get_owned_capsule(capsule_id: str, user_id: str, db: Session) -> Capsule:
     capsule = db.query(Capsule).filter(Capsule.id == capsule_id, Capsule.user_id == user_id).first()
     if not capsule:
-        raise HTTPException(status_code=404, detail="找不到這個膠囊")
+        raise HTTPException(status_code=404, detail="找不到這封信")
     return capsule

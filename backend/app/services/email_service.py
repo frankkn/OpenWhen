@@ -1,19 +1,42 @@
+from datetime import datetime, timezone, timedelta
+
 import resend
 from app.config import settings
 
 FROM_ADDRESS = "OpenWhen <onboarding@resend.dev>"
 
+# 顯示用時區：與前端 toLocal() 對齊（台灣使用者 UTC+8），
+# 避免接近午夜時 email 的日期比 app 內顯示早一天。
+DISPLAY_TZ = timezone(timedelta(hours=8))
 
-def send_capsule_ready_email(to: str, capsule_title: str | None, created_at_str: str) -> None:
+
+def _display_title(capsule_title: str | None, open_date: datetime) -> str:
+    """與前端 Capsule.displayTitle 一致：有標題就用標題，
+    否則用開封日組成「致 OOOO年O月O日 的我」。"""
+    t = (capsule_title or "").strip()
+    if t:
+        return t
+    if open_date.tzinfo is None:
+        open_date = open_date.replace(tzinfo=timezone.utc)
+    local = open_date.astimezone(DISPLAY_TZ)
+    return f"致 {local.year}年{local.month}月{local.day}日 的我"
+
+
+def send_capsule_ready_email(
+    to: str,
+    capsule_title: str | None,
+    open_date: datetime,
+    created_at_str: str,
+) -> None:
     if not settings.resend_api_key:
         return
 
     resend.api_key = settings.resend_api_key
-    title_display = f"「{capsule_title}」" if capsule_title else "你的時光膠囊"
+    title_display = _display_title(capsule_title, open_date)
 
     html = f"""
     <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #1A1410; padding: 40px 24px;">
-      <h2 style="color: #2D4A3E; margin-bottom: 8px;">🔓 時光膠囊可以打開了</h2>
+      <h2 style="color: #2D4A3E; margin-bottom: 8px;">🔓 你的信可以打開了</h2>
       <p style="color: #9E9189; font-size: 14px; margin-top: 0;">你在 {created_at_str} 封存的信件</p>
       <hr style="border: none; border-top: 1px solid #e5e0d8; margin: 24px 0;" />
       <p style="font-size: 16px; line-height: 1.8;">
@@ -25,7 +48,7 @@ def send_capsule_ready_email(to: str, capsule_title: str | None, created_at_str:
         <a href="https://openwhen-a527e.web.app"
            style="background: #2D4A3E; color: white; padding: 12px 32px;
                   border-radius: 4px; text-decoration: none; font-size: 15px;">
-          打開我的膠囊
+          打開我的信
         </a>
       </div>
       <hr style="border: none; border-top: 1px solid #e5e0d8; margin: 24px 0;" />
