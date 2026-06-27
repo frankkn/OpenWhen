@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:openwhen/providers/capsule_provider.dart';
 import 'package:openwhen/services/api_service.dart';
 import 'package:openwhen/theme/app_theme.dart';
 
-class SetOpenDateScreen extends StatefulWidget {
+class SetOpenDateScreen extends ConsumerStatefulWidget {
   const SetOpenDateScreen({
     super.key,
     required this.title,
@@ -19,10 +21,10 @@ class SetOpenDateScreen extends StatefulWidget {
   final List<Map<String, dynamic>> answers;
 
   @override
-  State<SetOpenDateScreen> createState() => _SetOpenDateScreenState();
+  ConsumerState<SetOpenDateScreen> createState() => _SetOpenDateScreenState();
 }
 
-class _SetOpenDateScreenState extends State<SetOpenDateScreen> {
+class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
   DateTime? _openDate;
   TimeOfDay _openTime = const TimeOfDay(hour: 8, minute: 0);
   bool _sendEmail = false;
@@ -128,6 +130,7 @@ class _SetOpenDateScreenState extends State<SetOpenDateScreen> {
         answers: widget.answers,
       );
       if (!mounted) return;
+      ref.invalidate(capsulesProvider); // 讓首頁重新抓列表，回去馬上看到新膠囊
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('膠囊已封存！')),
       );
