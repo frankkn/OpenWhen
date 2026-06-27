@@ -83,6 +83,13 @@ class Capsule {
   int get daysUntilOpen => openDate.difference(DateTime.now()).inDays;
   bool get isOpenable => DateTime.now().isAfter(openDate);
 
+  /// 卡片顯示用標題：有填標題就用標題，否則用開封年份組成「致 OOOO 年的我」。
+  String get displayTitle {
+    final t = title?.trim();
+    if (t != null && t.isNotEmpty) return t;
+    return '致 ${openDate.year} 年的我';
+  }
+
   /// 友善的剩餘時間文字（避免不到一天時顯示「還有 0 天」）
   String get remainingText {
     final diff = openDate.difference(DateTime.now());

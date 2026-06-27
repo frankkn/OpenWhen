@@ -157,7 +157,7 @@ class _CapsuleCard extends StatelessWidget {
             ]),
             const SizedBox(height: 8),
             Text(
-              capsule.title ?? '無標題',
+              capsule.displayTitle,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
