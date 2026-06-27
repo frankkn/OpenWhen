@@ -62,23 +62,23 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
           ('1 週後', const Duration(days: 7)),
         ]
       : [
+          ('1 天後', const Duration(days: 1)),
+          ('1 週後', const Duration(days: 7)),
           ('1 個月後', const Duration(days: 30)),
-          ('3 個月後', const Duration(days: 90)),
           ('1 年後', const Duration(days: 365)),
+          ('2 年後', const Duration(days: 365 * 2)),
           ('3 年後', const Duration(days: 365 * 3)),
+          ('5 年後', const Duration(days: 365 * 5)),
         ];
 
   Future<void> _pickDateTime() async {
     final now = DateTime.now();
-    final initialDate = _isAdmin
-        ? now.add(const Duration(days: 1))
-        : now.add(const Duration(days: 30));
+    final initialDate = now.add(const Duration(days: 1));
+    // 一般使用者可選任意未來時間（下限為今天），管理員不限
     final firstDate = _isAdmin
         ? DateTime(1900)
-        : now.add(const Duration(days: 30));
-    final lastDate = _isAdmin
-        ? DateTime(9999)
-        : now.add(const Duration(days: 365 * 100));
+        : DateTime(now.year, now.month, now.day);
+    final lastDate = DateTime(9999);
 
     final picked = await showDatePicker(
       context: context,
@@ -168,7 +168,7 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _isAdmin ? '🔑 管理員模式：可設定任意時間' : '最短 1 個月，最長 100 年',
+              _isAdmin ? '🔑 管理員模式：可設定任意時間' : '可設定任意未來時間',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: _isAdmin ? AppColors.forestGreen : AppColors.warmGray,
                   ),

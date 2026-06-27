@@ -32,12 +32,8 @@ def _validate_open_date(open_date: datetime.datetime, user: User) -> None:
         return
     now = datetime.datetime.now(datetime.timezone.utc)
     open_date = _ensure_aware(open_date)
-    min_date = now + datetime.timedelta(days=30)
-    max_date = now + datetime.timedelta(days=365 * 100)
-    if open_date < min_date:
-        raise HTTPException(status_code=400, detail="開封日期最少需設定 1 個月後")
-    if open_date > max_date:
-        raise HTTPException(status_code=400, detail="開封日期最多設定 100 年後")
+    if open_date < now:
+        raise HTTPException(status_code=400, detail="開封日期不能是過去的時間")
 
 
 @router.get("", response_model=list[CapsuleListItem])
