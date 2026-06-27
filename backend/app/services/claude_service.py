@@ -47,10 +47,10 @@ def _generate(system_prompt: str, contents: str, max_tokens: int) -> str:
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
+                # gemini-2.5 系列預設會「思考」，推理會吃掉 max_output_tokens 額度。
+                # 此版 google-genai 不支援關閉 thinking，故把上限開大，
+                # 讓推理 + 實際回覆都塞得下，避免回覆被截斷。
                 max_output_tokens=max_tokens,
-                # 關掉 gemini-2.5 系列的「思考」，否則推理會吃掉 max_output_tokens
-                # 額度導致回覆被截斷。這類整理/問答任務不需要 thinking。
-                thinking_config=types.ThinkingConfig(thinking_budget=0),
             ),
         )
     except Exception as e:
@@ -73,7 +73,7 @@ async def generate_letter(answers: list[CapsuleAnswerIn]) -> str:
         _generate,
         LETTER_SYSTEM_PROMPT,
         f"以下是使用者的回答：\n\n{qa_text}\n\n請整理成一封信。",
-        2048,
+        4096,
     )
 
 
@@ -82,7 +82,7 @@ async def generate_reflections(letter_content: str) -> list[str]:
         _generate,
         REFLECTION_SYSTEM_PROMPT,
         f"這是使用者當年寫的信：\n\n{letter_content}\n\n請提出反思問題。",
-        1024,
+        2048,
     )
     questions = [
         line.strip()
