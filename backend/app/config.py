@@ -10,9 +10,11 @@ class Settings(BaseSettings):
     firebase_service_account_json: str = ""
     gemini_api_key: str
     gemini_model: str = "gemini-2.5-flash"
-    # Gmail SMTP（免費寄信，不需網域）。需在 Google 帳號開啟兩步驟驗證後產生「應用程式密碼」。
-    gmail_address: str = ""
-    gmail_app_password: str = ""
+    # Email 通知用 Brevo HTTP API（免費、不需網域、走 HTTPS，Railway 不擋對外 SMTP）。
+    # mail_from_email 需在 Brevo 後台驗證為寄件人。
+    brevo_api_key: str = ""
+    mail_from_email: str = ""
+    mail_from_name: str = "OpenWhen"
     admin_email: str = "admin@admin.com"
     secret_key: str = "change-me-in-production"
     allowed_origins: str = "http://localhost:3000,http://localhost:8080"
