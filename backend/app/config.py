@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     # 不需要本機的 firebase-service-account.json 檔案。
     firebase_service_account_json: str = ""
     gemini_api_key: str
+    gemini_model: str = "gemini-2.5-flash"
     resend_api_key: str = ""
     secret_key: str = "change-me-in-production"
     allowed_origins: str = "http://localhost:3000,http://localhost:8080"

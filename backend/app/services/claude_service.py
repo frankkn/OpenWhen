@@ -43,7 +43,7 @@ def _generate(system_prompt: str, contents: str, max_tokens: int) -> str:
     try:
         client = _client()
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=settings.gemini_model,
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
