@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
@@ -66,8 +67,13 @@ def check_due_capsules() -> dict:
 def start_scheduler() -> None:
     if _scheduler.running:
         return
-    # 每小時整點檢查一次（開發時用），正式環境可改為每天 08:00
-    _scheduler.add_job(check_due_capsules, "interval", hours=1, id="notify_due_capsules")
+    # 每小時檢查一次，next_run_time=now 確保 app 啟動後立刻執行第一次
+    _scheduler.add_job(
+        check_due_capsules,
+        IntervalTrigger(hours=1),
+        id="notify_due_capsules",
+        next_run_time=datetime.now(timezone.utc),
+    )
     _scheduler.start()
     print("[scheduler] started — checking due capsules every hour")
 
