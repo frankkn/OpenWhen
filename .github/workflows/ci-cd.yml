@@ -131,7 +131,7 @@ jobs:
 
       - name: Build Flutter Web
         working-directory: frontend
-        run: flutter build web --release
+        run: flutter build web --release --dart-define=APP_VERSION=${{ github.ref_name }}
 
       - name: Deploy to Firebase Hosting
         env:

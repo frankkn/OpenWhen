@@ -36,7 +36,7 @@ class HomeScreen extends ConsumerWidget {
               ListTile(
                 leading: const Icon(Icons.info_outline),
                 title: const Text('版本'),
-                trailing: Text('v0.0.1',
+                trailing: Text(const String.fromEnvironment('APP_VERSION', defaultValue: 'dev'),
                     style: TextStyle(color: AppColors.warmGray, fontSize: 14)),
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
