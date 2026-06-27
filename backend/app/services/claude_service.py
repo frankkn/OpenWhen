@@ -20,6 +20,7 @@ LETTER_SYSTEM_PROMPT = """你是一個溫暖、有文學感的寫作助手。
 - 用第一人稱「我」寫
 - 保留使用者原本的語氣和用字，不要過度文學化
 - 信的結構：開頭描述現在的狀態 → 中間寫擔憂與期待 → 結尾留下對未來自己說的話
+- 信的最後一行固定用「過去的你 敬上」作為落款，不要用其他文字
 - 長度約 300～500 字
 - 繁體中文"""
 
@@ -90,6 +91,6 @@ async def generate_reflections(letter_content: str) -> list[str]:
         if line.strip() and line.strip()[0].isdigit()
     ]
     if not questions:
-        # 解析不到編號清單時，至少回傳非空行，避免前端拿到空陣列
-        questions = [line.strip() for line in raw.splitlines() if line.strip()]
+        # 解析不到編號清單時，過濾掉太短的行（前言通常很短），只取可能是問題的行
+        questions = [line.strip() for line in raw.splitlines() if len(line.strip()) > 10]
     return questions
