@@ -165,7 +165,7 @@ class _CapsuleCard extends StatelessWidget {
               isOpened
                   ? '已於 ${capsule.openedAt != null ? fmt.format(capsule.openedAt!) : fmt.format(capsule.openDate)} 開封'
                   : !capsule.isOpenable
-                      ? '${capsule.daysUntilOpen} 天後可開封（${fmt.format(capsule.openDate)}）'
+                      ? '${capsule.remainingText}（${fmt.format(capsule.openDate)}）'
                       : '可以開封了！',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.warmGray),
             ),

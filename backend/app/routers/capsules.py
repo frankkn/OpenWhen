@@ -21,10 +21,18 @@ def _is_admin(user: User) -> bool:
     return user.email == ADMIN_EMAIL
 
 
+def _ensure_aware(dt: datetime.datetime) -> datetime.datetime:
+    """把 naive datetime 視為 UTC，確保比較時兩邊都帶時區。"""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=datetime.timezone.utc)
+    return dt
+
+
 def _validate_open_date(open_date: datetime.datetime, user: User) -> None:
     if _is_admin(user):
         return
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(datetime.timezone.utc)
+    open_date = _ensure_aware(open_date)
     min_date = now + datetime.timedelta(days=30)
     max_date = now + datetime.timedelta(days=365 * 100)
     if open_date < min_date:
@@ -106,9 +114,10 @@ def open_capsule(
         raise HTTPException(status_code=400, detail="膠囊已經開封過了")
 
     if not _is_admin(current_user):
-        now = datetime.datetime.now()
-        if capsule.open_date > now:
-            delta = capsule.open_date - now
+        now = datetime.datetime.now(datetime.timezone.utc)
+        open_date = _ensure_aware(capsule.open_date)
+        if open_date > now:
+            delta = open_date - now
             days_left = delta.days
             hours_left = delta.seconds // 3600
             detail = f"還沒到開封時間，還有 {days_left} 天 {hours_left} 小時" if days_left > 0 else f"還沒到開封時間，還有 {hours_left} 小時"

@@ -27,7 +27,7 @@ class Capsule(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     mode: Mapped[CapsuleMode] = mapped_column(SAEnum(CapsuleMode), nullable=False)
     status: Mapped[CapsuleStatus] = mapped_column(SAEnum(CapsuleStatus), default=CapsuleStatus.locked, nullable=False)
-    open_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    open_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     notification_email: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -35,7 +35,7 @@ class Capsule(Base):
 
     user = relationship("User", back_populates="capsules")
     answers = relationship("CapsuleAnswer", back_populates="capsule", cascade="all, delete-orphan", order_by="CapsuleAnswer.question_number")
-    reflections = relationship("Reflection", back_populates="capsule", cascade="all, delete-orphan")
+    reflections = relationship("Reflection", back_populates="capsule", cascade="all, delete-orphan", order_by="Reflection.created_at")
 
 
 class CapsuleAnswer(Base):

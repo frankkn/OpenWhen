@@ -46,7 +46,7 @@ class ApiService {
       'title': title,
       'content': content,
       'mode': mode,
-      'open_date': openDate.toIso8601String(),
+      'open_date': openDate.toUtc().toIso8601String(),
       'notification_email': notificationEmail,
       'answers': answers,
     });

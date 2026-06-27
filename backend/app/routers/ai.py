@@ -6,7 +6,7 @@ from app.schemas.ai import (
     GenerateLetterRequest, GenerateLetterResponse,
     GenerateReflectionsRequest, GenerateReflectionsResponse,
 )
-from app.services.claude_service import generate_letter, generate_reflections
+from app.services.claude_service import generate_letter, generate_reflections, AIServiceError
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -18,7 +18,10 @@ async def api_generate_letter(
 ):
     if not body.answers:
         raise HTTPException(status_code=400, detail="請提供至少一個問答")
-    letter = await generate_letter(body.answers)
+    try:
+        letter = await generate_letter(body.answers)
+    except AIServiceError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     return GenerateLetterResponse(letter=letter)
 
 
@@ -29,5 +32,8 @@ async def api_generate_reflections(
 ):
     if not body.letter_content.strip():
         raise HTTPException(status_code=400, detail="信件內容不能為空")
-    questions = await generate_reflections(body.letter_content)
+    try:
+        questions = await generate_reflections(body.letter_content)
+    except AIServiceError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     return GenerateReflectionsResponse(questions=questions)

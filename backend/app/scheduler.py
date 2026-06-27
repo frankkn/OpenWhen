@@ -25,6 +25,20 @@ def _check_and_notify() -> None:
             .all()
         )
         for capsule in due:
+            # 原子 claim：只有成功把 notification_sent_at 從 NULL 改成 now 的程序才寄信，
+            # 避免多 worker 同時跑 scheduler 時重複寄信。
+            claimed = (
+                db.query(Capsule)
+                .filter(
+                    Capsule.id == capsule.id,
+                    Capsule.notification_sent_at.is_(None),
+                )
+                .update({Capsule.notification_sent_at: now}, synchronize_session=False)
+            )
+            db.commit()
+            if not claimed:
+                continue  # 已被其他程序搶走
+
             try:
                 created_str = capsule.created_at.strftime("%Y 年 %m 月 %d 日")
                 send_capsule_ready_email(
@@ -32,9 +46,12 @@ def _check_and_notify() -> None:
                     capsule_title=capsule.title,
                     created_at_str=created_str,
                 )
-                capsule.notification_sent_at = now
-                db.commit()
             except Exception as e:
+                # 寄信失敗 → 還原 claim，讓下次重試
+                db.query(Capsule).filter(Capsule.id == capsule.id).update(
+                    {Capsule.notification_sent_at: None}, synchronize_session=False
+                )
+                db.commit()
                 print(f"[scheduler] email failed for capsule {capsule.id}: {e}")
     finally:
         db.close()

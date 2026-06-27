@@ -68,10 +68,10 @@ class Capsule {
         content: json['content'] as String?,
         mode: json['mode'] == 'free' ? CapsuleMode.free : CapsuleMode.aiAssisted,
         status: json['status'] == 'opened' ? CapsuleStatus.opened : CapsuleStatus.locked,
-        openDate: DateTime.parse(json['open_date'] as String),
+        openDate: DateTime.parse(json['open_date'] as String).toLocal(),
         notificationEmail: json['notification_email'] as String?,
-        createdAt: DateTime.parse(json['created_at'] as String),
-        openedAt: json['opened_at'] != null ? DateTime.parse(json['opened_at'] as String) : null,
+        createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+        openedAt: json['opened_at'] != null ? DateTime.parse(json['opened_at'] as String).toLocal() : null,
         answers: (json['answers'] as List<dynamic>? ?? [])
             .map((a) => CapsuleAnswer.fromJson(a as Map<String, dynamic>))
             .toList(),
@@ -82,6 +82,16 @@ class Capsule {
 
   int get daysUntilOpen => openDate.difference(DateTime.now()).inDays;
   bool get isOpenable => DateTime.now().isAfter(openDate);
+
+  /// 友善的剩餘時間文字（避免不到一天時顯示「還有 0 天」）
+  String get remainingText {
+    final diff = openDate.difference(DateTime.now());
+    if (diff.isNegative) return '可以開封了';
+    if (diff.inDays >= 1) return '還有 ${diff.inDays} 天';
+    if (diff.inHours >= 1) return '還有 ${diff.inHours} 小時';
+    if (diff.inMinutes >= 1) return '還有 ${diff.inMinutes} 分鐘';
+    return '即將可開封';
+  }
 }
 
 class Reflection {

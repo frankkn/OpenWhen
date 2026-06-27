@@ -1,8 +1,14 @@
+import asyncio
+
 from google import genai
 from google.genai import types
 
 from app.config import settings
 from app.schemas.capsule import CapsuleAnswerIn
+
+
+class AIServiceError(Exception):
+    """AI 生成失敗時拋出，由 router 轉成友善的 HTTP 錯誤。"""
 
 LETTER_SYSTEM_PROMPT = """你是一個溫暖、有文學感的寫作助手。
 使用者剛剛回答了一系列關於自己當下生活的問題。
@@ -29,37 +35,54 @@ def _client() -> genai.Client:
     return genai.Client(api_key=settings.gemini_api_key)
 
 
+def _generate(system_prompt: str, contents: str, max_tokens: int) -> str:
+    """同步呼叫 Gemini，回傳純文字；失敗或空回應時拋 AIServiceError。"""
+    try:
+        client = _client()
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                max_output_tokens=max_tokens,
+            ),
+        )
+    except Exception as e:
+        raise AIServiceError(f"AI 服務暫時無法使用：{e}")
+
+    text = response.text
+    if not text or not text.strip():
+        raise AIServiceError("AI 沒有回傳內容，請稍後再試")
+    return text
+
+
 async def generate_letter(answers: list[CapsuleAnswerIn]) -> str:
     qa_text = "\n".join(
         f"Q{a.question_number}. {a.question_text}\nA: {a.answer_text or '（跳過）'}"
         for a in answers
     )
-    client = _client()
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=f"以下是使用者的回答：\n\n{qa_text}\n\n請整理成一封信。",
-        config=types.GenerateContentConfig(
-            system_instruction=LETTER_SYSTEM_PROMPT,
-            max_output_tokens=1024,
-        ),
+    # 同步 SDK 呼叫放到 thread，避免阻塞 FastAPI event loop
+    return await asyncio.to_thread(
+        _generate,
+        LETTER_SYSTEM_PROMPT,
+        f"以下是使用者的回答：\n\n{qa_text}\n\n請整理成一封信。",
+        1024,
     )
-    return response.text
 
 
 async def generate_reflections(letter_content: str) -> list[str]:
-    client = _client()
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=f"這是使用者當年寫的信：\n\n{letter_content}\n\n請提出反思問題。",
-        config=types.GenerateContentConfig(
-            system_instruction=REFLECTION_SYSTEM_PROMPT,
-            max_output_tokens=512,
-        ),
+    raw = await asyncio.to_thread(
+        _generate,
+        REFLECTION_SYSTEM_PROMPT,
+        f"這是使用者當年寫的信：\n\n{letter_content}\n\n請提出反思問題。",
+        512,
     )
-    raw = response.text
     questions = [
         line.strip()
         for line in raw.splitlines()
         if line.strip() and line.strip()[0].isdigit()
     ]
+    if not questions:
+        # 解析不到編號清單時，至少回傳非空行，避免前端拿到空陣列
+        questions = [line.strip() for line in raw.splitlines() if line.strip()]
     return questions

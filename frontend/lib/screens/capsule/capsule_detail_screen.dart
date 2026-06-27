@@ -158,7 +158,7 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    '還有 ${capsule.daysUntilOpen} 天才能打開',
+                    '${capsule.remainingText}才能打開',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.forestGreen),
                   ),
