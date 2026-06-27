@@ -1,11 +1,8 @@
 #!/bin/bash
 set -e
 
-# Write Firebase service account from env var to file (used in Railway/cloud)
-if [ -n "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
-    TARGET="${FIREBASE_SERVICE_ACCOUNT_PATH:-./firebase-service-account.json}"
-    echo "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$TARGET"
-fi
+# Firebase 服務帳號透過環境變數 FIREBASE_SERVICE_ACCOUNT_JSON 提供，
+# 由 app 直接讀取，不需要寫成檔案。
 
 # Run database migrations
 alembic upgrade head

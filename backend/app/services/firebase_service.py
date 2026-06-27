@@ -1,3 +1,5 @@
+import json
+
 import firebase_admin
 from firebase_admin import credentials, auth
 
@@ -9,7 +11,15 @@ _app = None
 def _get_app():
     global _app
     if _app is None:
-        cred = credentials.Certificate(settings.firebase_service_account_path)
+        # 優先使用環境變數中的 JSON（正式環境 / `railway run`），否則退回讀檔案。
+        if settings.firebase_service_account_json:
+            try:
+                sa_dict = json.loads(settings.firebase_service_account_json)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"FIREBASE_SERVICE_ACCOUNT_JSON 不是合法 JSON：{e}")
+            cred = credentials.Certificate(sa_dict)
+        else:
+            cred = credentials.Certificate(settings.firebase_service_account_path)
         _app = firebase_admin.initialize_app(cred)
     return _app
 
