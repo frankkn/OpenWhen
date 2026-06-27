@@ -30,6 +30,8 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
   bool _sendEmail = false;
   bool _useLoginEmail = true;
   final _customEmailCtrl = TextEditingController();
+  late final TextEditingController _titleCtrl =
+      TextEditingController(text: widget.title ?? '');
   bool _saving = false;
 
   String? get _loginEmail => FirebaseAuth.instance.currentUser?.email;
@@ -44,6 +46,7 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
   @override
   void dispose() {
     _customEmailCtrl.dispose();
+    _titleCtrl.dispose();
     super.dispose();
   }
 
@@ -121,8 +124,9 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
     }
     setState(() => _saving = true);
     try {
+      final titleInput = _titleCtrl.text.trim();
       await ApiService().createCapsule(
-        title: widget.title,
+        title: titleInput.isEmpty ? null : titleInput,
         content: widget.content,
         mode: widget.mode,
         openDate: _openDate!,
@@ -193,6 +197,21 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
               icon: const Icon(Icons.calendar_today, size: 16),
               label: Text(
                 _openDate != null ? _formatDateTime(_openDate!) : '自訂日期與時間',
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              '需要給這封信一個標題嗎？（選填）',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _titleCtrl,
+              decoration: InputDecoration(
+                hintText: _openDate != null
+                    ? '預設為「致 ${_openDate!.year}年${_openDate!.month}月${_openDate!.day}日 的我」'
+                    : '預設依開封日期自動產生',
+                hintStyle: TextStyle(color: AppColors.warmGray, fontSize: 13),
               ),
             ),
             const SizedBox(height: 32),
