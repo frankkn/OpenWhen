@@ -82,6 +82,12 @@ class ApiService {
     return (res.data['questions'] as List).cast<String>();
   }
 
+  Future<Map<String, dynamic>> checkNotifications() async {
+    final opts = await _authOptions();
+    final res = await _dio.post('/admin/check-notifications', options: opts);
+    return res.data as Map<String, dynamic>;
+  }
+
   Future<List<Reflection>> saveReflections(String capsuleId, List<Reflection> reflections) async {
     final opts = await _authOptions();
     final res = await _dio.post('/capsules/$capsuleId/reflections', options: opts, data: {

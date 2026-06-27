@@ -10,8 +10,11 @@ from app.services.email_service import send_capsule_ready_email
 _scheduler = BackgroundScheduler()
 
 
-def _check_and_notify() -> None:
+def check_due_capsules() -> dict:
+    """檢查到期且需通知的膠囊並寄信。回傳 {'sent': N, 'failed': N}。"""
     db: Session = SessionLocal()
+    sent = 0
+    failed = 0
     try:
         now = datetime.now(timezone.utc)
         due = (
@@ -46,22 +49,25 @@ def _check_and_notify() -> None:
                     capsule_title=capsule.title,
                     created_at_str=created_str,
                 )
+                sent += 1
             except Exception as e:
                 # 寄信失敗 → 還原 claim，讓下次重試
                 db.query(Capsule).filter(Capsule.id == capsule.id).update(
                     {Capsule.notification_sent_at: None}, synchronize_session=False
                 )
                 db.commit()
+                failed += 1
                 print(f"[scheduler] email failed for capsule {capsule.id}: {e}")
     finally:
         db.close()
+    return {"sent": sent, "failed": failed}
 
 
 def start_scheduler() -> None:
     if _scheduler.running:
         return
     # 每小時整點檢查一次（開發時用），正式環境可改為每天 08:00
-    _scheduler.add_job(_check_and_notify, "interval", hours=1, id="notify_due_capsules")
+    _scheduler.add_job(check_due_capsules, "interval", hours=1, id="notify_due_capsules")
     _scheduler.start()
     print("[scheduler] started — checking due capsules every hour")
 

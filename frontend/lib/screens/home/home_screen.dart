@@ -1,9 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:openwhen/models/capsule.dart';
 import 'package:openwhen/providers/capsule_provider.dart';
+import 'package:openwhen/services/api_service.dart';
 import 'package:openwhen/services/auth_service.dart';
 import 'package:openwhen/theme/app_theme.dart';
 
@@ -48,6 +50,25 @@ class HomeScreen extends ConsumerWidget {
                 },
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
+              if (FirebaseAuth.instance.currentUser?.email == 'admin@admin.com') ...[
+                ListTile(
+                  leading: const Icon(Icons.mark_email_read_outlined),
+                  title: const Text('立即檢查到期通知（測試）'),
+                  onTap: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    Navigator.pop(context);
+                    try {
+                      final r = await ApiService().checkNotifications();
+                      messenger.showSnackBar(SnackBar(
+                        content: Text('已檢查：寄出 ${r['sent']} 封，失敗 ${r['failed']} 封'),
+                      ));
+                    } catch (e) {
+                      messenger.showSnackBar(SnackBar(content: Text('檢查失敗：$e')));
+                    }
+                  },
+                ),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+              ],
               ListTile(
                 leading: Icon(Icons.logout, color: Colors.red.shade400),
                 title: Text('登出', style: TextStyle(color: Colors.red.shade400)),
