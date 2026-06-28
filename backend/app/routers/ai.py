@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.dependencies import get_current_user
+from app.limiter import limiter
 from app.models.user import User
 from app.schemas.ai import (
     GenerateLetterRequest, GenerateLetterResponse,
@@ -12,7 +13,9 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 
 
 @router.post("/generate-letter", response_model=GenerateLetterResponse)
+@limiter.limit("5/minute")
 async def api_generate_letter(
+    request: Request,
     body: GenerateLetterRequest,
     _: User = Depends(get_current_user),
 ):
@@ -26,7 +29,9 @@ async def api_generate_letter(
 
 
 @router.post("/generate-reflections", response_model=GenerateReflectionsResponse)
+@limiter.limit("5/minute")
 async def api_generate_reflections(
+    request: Request,
     body: GenerateReflectionsRequest,
     _: User = Depends(get_current_user),
 ):

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -8,6 +9,7 @@ from app.database import SessionLocal
 from app.models.capsule import Capsule, CapsuleStatus
 from app.services.email_service import send_capsule_ready_email
 
+logger = logging.getLogger(__name__)
 _scheduler = BackgroundScheduler()
 
 
@@ -59,7 +61,7 @@ def check_due_capsules() -> dict:
                 )
                 db.commit()
                 failed += 1
-                print(f"[scheduler] email failed for capsule {capsule.id}: {e}")
+                logger.error("Email failed for capsule %s: %s", capsule.id, e)
     finally:
         db.close()
     return {"sent": sent, "failed": failed}
@@ -76,7 +78,7 @@ def start_scheduler() -> None:
         next_run_time=datetime.now(timezone.utc),
     )
     _scheduler.start()
-    print("[scheduler] started — checking due capsules every hour")
+    logger.info("Started — checking due capsules every hour")
 
 
 def shutdown_scheduler() -> None:

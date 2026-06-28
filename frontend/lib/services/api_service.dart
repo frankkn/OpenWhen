@@ -8,7 +8,7 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  Dio get _dio => Dio(BaseOptions(baseUrl: apiBaseUrl));
+  final Dio _dio = Dio(BaseOptions(baseUrl: apiBaseUrl));
 
   Future<String?> _getToken() async {
     final user = FirebaseAuth.instance.currentUser;

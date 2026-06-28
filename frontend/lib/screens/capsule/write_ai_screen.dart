@@ -58,6 +58,27 @@ class _WriteAiScreenState extends State<WriteAiScreen> {
     setState(() => _current--);
   }
 
+  Future<void> _confirmPop() async {
+    if (_loading) return;
+    final hasAnswers = _controllers.any((c) => c.text.trim().isNotEmpty);
+    if (!hasAnswers) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('放棄問答？'),
+        content: const Text('返回後，已填寫的答案將會消失'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('繼續填寫')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('放棄')),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) Navigator.pop(context);
+  }
+
   Future<void> _generateLetter() async {
     setState(() => _loading = true);
     try {
@@ -88,23 +109,28 @@ class _WriteAiScreenState extends State<WriteAiScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: Center(child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('AI 正在整理你的信件…'),
-          ],
-        )),
-      );
-    }
-
     final isFirst = _current == 0;
     final isLast = _current == _questions.length - 1;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, _) {
+        if (!didPop) _confirmPop();
+      },
+      child: _loading
+          ? const Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('AI 正在整理你的信件…'),
+                  ],
+                ),
+              ),
+            )
+          : Scaffold(
       appBar: AppBar(
         title: Text('第 ${_current + 1} 題／共 ${_questions.length} 題'),
         backgroundColor: AppColors.paperWhite,
@@ -153,6 +179,7 @@ class _WriteAiScreenState extends State<WriteAiScreen> {
           ]),
         ]),
       ),
-    );
+    ),
+  );
   }
 }

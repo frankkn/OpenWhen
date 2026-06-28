@@ -101,9 +101,11 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
       (i) => _reflections![i].copyWith(answerText: _reflectionControllers![i].text.trim()),
     );
     try {
-      await ApiService().saveReflections(capsule.id, updated);
+      final saved = await ApiService().saveReflections(capsule.id, updated);
+      if (!mounted) return;
+      setState(() => _reflections = saved);
       ref.invalidate(capsuleDetailProvider(widget.capsuleId));
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('反思已儲存')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('反思已儲存')));
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('儲存失敗：$e')));
     }
