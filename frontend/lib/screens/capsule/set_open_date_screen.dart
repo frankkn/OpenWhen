@@ -116,9 +116,10 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
     );
     if (picked == null || !mounted) return;
 
-    // 若已選今天，驗證時間不能是過去
+    // 若已選今天，驗證時間不能是過去（管理員豁免，可測試即時開封）
     final now = DateTime.now();
-    final isToday = _date != null &&
+    final isToday = !_isAdmin &&
+        _date != null &&
         _date!.year == now.year &&
         _date!.month == now.month &&
         _date!.day == now.day;
@@ -166,7 +167,8 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
       );
       return;
     }
-    if (openDateTime.isBefore(DateTime.now())) {
+    // 管理員可建立過去/即時開封的膠囊以測試流程（後端 _validate_open_date 同樣豁免）
+    if (!_isAdmin && openDateTime.isBefore(DateTime.now())) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('開封時間必須是未來的時間，請重新選擇')),
       );
