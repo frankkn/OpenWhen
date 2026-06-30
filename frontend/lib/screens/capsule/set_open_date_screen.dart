@@ -186,7 +186,8 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
                 return ChoiceChip(
                   label: Text(p.$1),
                   selected: selected,
-                  onSelected: (_) => setState(() => _openDate = date),
+                  // 再點一次已選取的快捷鈕 → 取消選取（清空日期）
+                  onSelected: (_) => setState(() => _openDate = selected ? null : date),
                   selectedColor: AppColors.forestGreen.withValues(alpha: 0.15),
                 );
               }).toList(),
