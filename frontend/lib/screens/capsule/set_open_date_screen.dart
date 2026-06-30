@@ -27,12 +27,16 @@ class SetOpenDateScreen extends ConsumerStatefulWidget {
 class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
   DateTime? _date; // 只存年月日；時間部分忽略
   TimeOfDay _time = const TimeOfDay(hour: 8, minute: 0); // 預設早上 8:00
+  int? _selectedPresetIndex; // 追蹤快捷鈕選取狀態，避免多個 preset 落在同一天時同時高亮
   bool _sendEmail = false;
   bool _useLoginEmail = true;
   final _customEmailCtrl = TextEditingController();
   late final TextEditingController _titleCtrl =
       TextEditingController(text: widget.title ?? '');
   bool _saving = false;
+
+  late final bool _isAdmin;
+  late final List<(String, Duration)> _presets;
 
   String? get _loginEmail => FirebaseAuth.instance.currentUser?.email;
 
@@ -44,32 +48,34 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _isAdmin = FirebaseAuth.instance.currentUser?.email == 'admin@admin.com';
+    _presets = _isAdmin
+        ? [
+            ('20 秒後', const Duration(seconds: 20)),
+            ('1 分鐘後', const Duration(minutes: 1)),
+            ('1 小時後', const Duration(hours: 1)),
+            ('1 天後', const Duration(days: 1)),
+            ('1 週後', const Duration(days: 7)),
+          ]
+        : [
+            ('1 天後', const Duration(days: 1)),
+            ('1 週後', const Duration(days: 7)),
+            ('1 個月後', const Duration(days: 30)),
+            ('1 年後', const Duration(days: 365)),
+            ('2 年後', const Duration(days: 365 * 2)),
+            ('3 年後', const Duration(days: 365 * 3)),
+            ('5 年後', const Duration(days: 365 * 5)),
+          ];
+  }
+
+  @override
   void dispose() {
     _customEmailCtrl.dispose();
     _titleCtrl.dispose();
     super.dispose();
   }
-
-  bool get _isAdmin =>
-      FirebaseAuth.instance.currentUser?.email == 'admin@admin.com';
-
-  List<(String, Duration)> get _presets => _isAdmin
-      ? [
-          ('20 秒後', const Duration(seconds: 20)),
-          ('1 分鐘後', const Duration(minutes: 1)),
-          ('1 小時後', const Duration(hours: 1)),
-          ('1 天後', const Duration(days: 1)),
-          ('1 週後', const Duration(days: 7)),
-        ]
-      : [
-          ('1 天後', const Duration(days: 1)),
-          ('1 週後', const Duration(days: 7)),
-          ('1 個月後', const Duration(days: 30)),
-          ('1 年後', const Duration(days: 365)),
-          ('2 年後', const Duration(days: 365 * 2)),
-          ('3 年後', const Duration(days: 365 * 3)),
-          ('5 年後', const Duration(days: 365 * 5)),
-        ];
 
   /// 合併日期與時間成最終開封時間；尚未選日期時為 null。
   DateTime? get _openDateTime {
@@ -93,7 +99,10 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
       lastDate: DateTime(9999),
     );
     if (picked == null || !mounted) return;
-    setState(() => _date = DateTime(picked.year, picked.month, picked.day));
+    setState(() {
+      _date = DateTime(picked.year, picked.month, picked.day);
+      _selectedPresetIndex = null; // 手動選日期後清除快捷鈕高亮
+    });
   }
 
   Future<void> _pickTime() async {
@@ -106,14 +115,32 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
       ),
     );
     if (picked == null || !mounted) return;
+
+    // 若已選今天，驗證時間不能是過去
+    final now = DateTime.now();
+    final isToday = _date != null &&
+        _date!.year == now.year &&
+        _date!.month == now.month &&
+        _date!.day == now.day;
+    if (isToday) {
+      final candidate = DateTime(now.year, now.month, now.day, picked.hour, picked.minute);
+      if (candidate.isBefore(now)) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('選擇的時間已是過去，請選未來的時間')),
+        );
+        return;
+      }
+    }
     setState(() => _time = picked);
   }
 
   /// 套用快捷鈕。日級以上只設日期（時間維持預設/使用者選的）；
   /// 管理員測試用的秒/分/時級則連時間一起設成精確值。
-  void _applyPreset(Duration offset) {
+  void _applyPreset(int index, Duration offset) {
     final dt = DateTime.now().add(offset);
     setState(() {
+      _selectedPresetIndex = index;
       _date = DateTime(dt.year, dt.month, dt.day);
       if (offset < const Duration(days: 1)) {
         _time = TimeOfDay(hour: dt.hour, minute: dt.minute);
@@ -136,6 +163,12 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
     if (openDateTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('請先選擇開封日期')),
+      );
+      return;
+    }
+    if (openDateTime.isBefore(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('開封時間必須是未來的時間，請重新選擇')),
       );
       return;
     }
@@ -194,18 +227,20 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _presets.map((p) {
-                final date = DateTime.now().add(p.$2);
-                final selected = _date != null &&
-                    _date!.year == date.year &&
-                    _date!.month == date.month &&
-                    _date!.day == date.day;
+              children: _presets.asMap().entries.map((entry) {
+                final index = entry.key;
+                final p = entry.value;
+                final selected = _selectedPresetIndex == index;
                 return ChoiceChip(
                   label: Text(p.$1),
                   selected: selected,
                   // 再點一次已選取的快捷鈕 → 取消選取（清空日期）
-                  onSelected: (_) =>
-                      selected ? setState(() => _date = null) : _applyPreset(p.$2),
+                  onSelected: (_) => selected
+                      ? setState(() {
+                          _date = null;
+                          _selectedPresetIndex = null;
+                        })
+                      : _applyPreset(index, p.$2),
                   selectedColor: AppColors.forestGreen.withValues(alpha: 0.15),
                 );
               }).toList(),
@@ -249,7 +284,7 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
               maxLength: 200,
               decoration: InputDecoration(
                 hintText: _date != null
-                    ? '預設為「致 ${_date!.year}年${_date!.month}月${_date!.day}日 的我」'
+                    ? '預設為「致 ${_formatDate(_date!)} 的我」'
                     : '預設依開封日期自動產生',
                 hintStyle: TextStyle(color: AppColors.warmGray, fontSize: 13),
               ),

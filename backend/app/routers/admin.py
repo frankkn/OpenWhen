@@ -56,5 +56,5 @@ def _diagnose(capsule: Capsule, mail_configured: bool) -> list[str]:
     if capsule.open_date and capsule.open_date > now:
         issues.append(f"開封日期 {capsule.open_date} 尚未到，排程器不會寄信")
     if not issues:
-        issues.append("設定看起來正常，等排程器下次執行（最多 1 小時）或請管理員手動觸發")
+        issues.append("設定看起來正常，等排程器下次執行（最多 5 分鐘）或請管理員手動觸發")
     return issues

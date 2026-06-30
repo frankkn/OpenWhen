@@ -15,6 +15,11 @@ _scheduler = BackgroundScheduler()
 
 def check_due_capsules() -> dict:
     """檢查到期且需通知的信件並寄信。回傳 {'sent': N, 'failed': N}。"""
+    from app.config import settings  # 避免循環 import
+    if not settings.brevo_api_key or not settings.mail_from_email:
+        logger.warning("Brevo 未設定（缺少 BREVO_API_KEY 或 MAIL_FROM_EMAIL），跳過本次通知檢查")
+        return {"sent": 0, "failed": 0}
+
     db: Session = SessionLocal()
     sent = 0
     failed = 0
@@ -31,20 +36,6 @@ def check_due_capsules() -> dict:
             .all()
         )
         for capsule in due:
-            # 原子 claim：只有成功把 notification_sent_at 從 NULL 改成 now 的程序才寄信，
-            # 避免多 worker 同時跑 scheduler 時重複寄信。
-            claimed = (
-                db.query(Capsule)
-                .filter(
-                    Capsule.id == capsule.id,
-                    Capsule.notification_sent_at.is_(None),
-                )
-                .update({Capsule.notification_sent_at: now}, synchronize_session=False)
-            )
-            db.commit()
-            if not claimed:
-                continue  # 已被其他程序搶走
-
             try:
                 created_str = capsule.created_at.strftime("%Y 年 %m 月 %d 日")
                 send_capsule_ready_email(
@@ -53,13 +44,18 @@ def check_due_capsules() -> dict:
                     open_date=capsule.open_date,
                     created_at_str=created_str,
                 )
+                # 寄信成功後才寫入 notification_sent_at，確保 process crash 不會讓
+                # capsule 永久消失在排程佇列中（寫入前 crash → 下次重試）。
+                # 注意：多 worker 情境下仍有極小機率重複寄信；若日後橫向擴展，
+                # 需改用獨立的 notification_claimed_at 欄位做原子 claim。
+                db.query(Capsule).filter(
+                    Capsule.id == capsule.id,
+                    Capsule.notification_sent_at.is_(None),
+                ).update({Capsule.notification_sent_at: now}, synchronize_session=False)
+                db.commit()
                 sent += 1
             except Exception as e:
-                # 寄信失敗 → 還原 claim，讓下次重試
-                db.query(Capsule).filter(Capsule.id == capsule.id).update(
-                    {Capsule.notification_sent_at: None}, synchronize_session=False
-                )
-                db.commit()
+                db.rollback()
                 failed += 1
                 logger.error("Email failed for capsule %s: %s", capsule.id, e)
     finally:
