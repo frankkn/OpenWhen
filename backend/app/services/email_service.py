@@ -30,7 +30,12 @@ def send_capsule_ready_email(
     created_at_str: str,
 ) -> None:
     if not settings.brevo_api_key or not settings.mail_from_email:
-        return
+        # 不能安靜 return：否則排程器會把這封信當成「已寄成功」、
+        # 永久寫上 notification_sent_at，之後就算把 Brevo 設定好也不會補寄。
+        # 丟例外讓排程器還原 claim、下次重試。
+        raise RuntimeError(
+            "Brevo 未設定：缺少 BREVO_API_KEY 或 MAIL_FROM_EMAIL，無法寄送通知信"
+        )
 
     title_display = _display_title(capsule_title, open_date)
 

@@ -70,15 +70,16 @@ def check_due_capsules() -> dict:
 def start_scheduler() -> None:
     if _scheduler.running:
         return
-    # 每小時檢查一次，next_run_time=now 確保 app 啟動後立刻執行第一次
+    # 每 5 分鐘檢查一次，next_run_time=now 確保 app 啟動後立刻執行第一次。
+    # （原本每小時一次，到期後通知最糟要等近 1 小時才送出。）
     _scheduler.add_job(
         check_due_capsules,
-        IntervalTrigger(hours=1),
+        IntervalTrigger(minutes=5),
         id="notify_due_capsules",
         next_run_time=datetime.now(timezone.utc),
     )
     _scheduler.start()
-    logger.info("Started — checking due capsules every hour")
+    logger.info("Started — checking due capsules every 5 minutes")
 
 
 def shutdown_scheduler() -> None:
