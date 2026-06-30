@@ -25,8 +25,8 @@ class SetOpenDateScreen extends ConsumerStatefulWidget {
 }
 
 class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
-  DateTime? _openDate;
-  TimeOfDay _openTime = const TimeOfDay(hour: 8, minute: 0);
+  DateTime? _date; // 只存年月日；時間部分忽略
+  TimeOfDay _time = const TimeOfDay(hour: 8, minute: 0); // 預設早上 8:00
   bool _sendEmail = false;
   bool _useLoginEmail = true;
   final _customEmailCtrl = TextEditingController();
@@ -71,52 +71,69 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
           ('5 年後', const Duration(days: 365 * 5)),
         ];
 
-  Future<void> _pickDateTime() async {
+  /// 合併日期與時間成最終開封時間；尚未選日期時為 null。
+  DateTime? get _openDateTime {
+    final d = _date;
+    if (d == null) return null;
+    return DateTime(d.year, d.month, d.day, _time.hour, _time.minute);
+  }
+
+  Future<void> _pickDate() async {
     final now = DateTime.now();
-    final initialDate = now.add(const Duration(days: 1));
+    final initialDate = _date ?? now.add(const Duration(days: 1));
     // 一般使用者可選任意未來時間（下限為今天），管理員不限
     final firstDate = _isAdmin
         ? DateTime(1900)
         : DateTime(now.year, now.month, now.day);
-    final lastDate = DateTime(9999);
 
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: firstDate,
-      lastDate: lastDate,
+      lastDate: DateTime(9999),
     );
     if (picked == null || !mounted) return;
+    setState(() => _date = DateTime(picked.year, picked.month, picked.day));
+  }
 
-    final pickedTime = await showTimePicker(
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
       context: context,
-      initialTime: _openTime,
+      initialTime: _time,
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
         child: child!,
       ),
     );
-    if (pickedTime == null || !mounted) return;
+    if (picked == null || !mounted) return;
+    setState(() => _time = picked);
+  }
 
+  /// 套用快捷鈕。日級以上只設日期（時間維持預設/使用者選的）；
+  /// 管理員測試用的秒/分/時級則連時間一起設成精確值。
+  void _applyPreset(Duration offset) {
+    final dt = DateTime.now().add(offset);
     setState(() {
-      _openTime = pickedTime;
-      _openDate = DateTime(
-        picked.year, picked.month, picked.day,
-        pickedTime.hour, pickedTime.minute,
-      );
+      _date = DateTime(dt.year, dt.month, dt.day);
+      if (offset < const Duration(days: 1)) {
+        _time = TimeOfDay(hour: dt.hour, minute: dt.minute);
+      }
     });
   }
 
-  DateTime _presetDateTime(Duration offset) => DateTime.now().add(offset);
+  String _formatDate(DateTime dt) => '${dt.year}年${dt.month}月${dt.day}日';
 
-  String _formatDateTime(DateTime dt) {
-    final h = dt.hour.toString().padLeft(2, '0');
-    final m = dt.minute.toString().padLeft(2, '0');
-    return '${dt.year}年${dt.month}月${dt.day}日 $h:$m';
+  String _formatTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  String _weekday(DateTime dt) {
+    const names = ['一', '二', '三', '四', '五', '六', '日'];
+    return '週${names[dt.weekday - 1]}';
   }
 
   Future<void> _save() async {
-    if (_openDate == null) {
+    final openDateTime = _openDateTime;
+    if (openDateTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('請先選擇開封日期')),
       );
@@ -129,7 +146,7 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
         title: titleInput.isEmpty ? null : titleInput,
         content: widget.content,
         mode: widget.mode,
-        openDate: _openDate!,
+        openDate: openDateTime,
         notificationEmail: _notificationEmail,
         answers: widget.answers,
       );
@@ -178,27 +195,48 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
               spacing: 8,
               runSpacing: 8,
               children: _presets.map((p) {
-                final date = _presetDateTime(p.$2);
-                final selected = _openDate != null &&
-                    _openDate!.year == date.year &&
-                    _openDate!.month == date.month &&
-                    _openDate!.day == date.day;
+                final date = DateTime.now().add(p.$2);
+                final selected = _date != null &&
+                    _date!.year == date.year &&
+                    _date!.month == date.month &&
+                    _date!.day == date.day;
                 return ChoiceChip(
                   label: Text(p.$1),
                   selected: selected,
                   // 再點一次已選取的快捷鈕 → 取消選取（清空日期）
-                  onSelected: (_) => setState(() => _openDate = selected ? null : date),
+                  onSelected: (_) =>
+                      selected ? setState(() => _date = null) : _applyPreset(p.$2),
                   selectedColor: AppColors.forestGreen.withValues(alpha: 0.15),
                 );
               }).toList(),
             ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: _pickDateTime,
-              icon: const Icon(Icons.calendar_today, size: 16),
-              label: Text(
-                _openDate != null ? _formatDateTime(_openDate!) : '自訂日期與時間',
-              ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _pickDate,
+                    icon: const Icon(Icons.calendar_today, size: 16),
+                    label: Text(_date != null ? _formatDate(_date!) : '選擇日期'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _pickTime,
+                    icon: const Icon(Icons.access_time, size: 16),
+                    label: Text(_formatTime(_time)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _OpenDateSummary(
+              openDateTime: _openDateTime,
+              dateText: _openDateTime != null
+                  ? '${_formatDate(_openDateTime!)}（${_weekday(_openDateTime!)}）'
+                  : null,
+              timeText: _formatTime(_time),
             ),
             const SizedBox(height: 32),
             Text(
@@ -210,8 +248,8 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
               controller: _titleCtrl,
               maxLength: 200,
               decoration: InputDecoration(
-                hintText: _openDate != null
-                    ? '預設為「致 ${_openDate!.year}年${_openDate!.month}月${_openDate!.day}日 的我」'
+                hintText: _date != null
+                    ? '預設為「致 ${_date!.year}年${_date!.month}月${_date!.day}日 的我」'
                     : '預設依開封日期自動產生',
                 hintStyle: TextStyle(color: AppColors.warmGray, fontSize: 13),
               ),
@@ -277,6 +315,94 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 開封時間的結果摘要卡：一眼看到信件會在何時開封。
+class _OpenDateSummary extends StatelessWidget {
+  const _OpenDateSummary({
+    required this.openDateTime,
+    required this.dateText,
+    required this.timeText,
+  });
+
+  final DateTime? openDateTime;
+  final String? dateText; // 已含星期，例如「2026年7月1日（週三）」
+  final String timeText;
+
+  @override
+  Widget build(BuildContext context) {
+    final ready = openDateTime != null;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        color: ready
+            ? AppColors.forestGreen.withValues(alpha: 0.08)
+            : AppColors.warmGray.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: ready
+              ? AppColors.forestGreen.withValues(alpha: 0.3)
+              : AppColors.warmGray.withValues(alpha: 0.25),
+        ),
+      ),
+      child: ready
+          ? Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.mail_outline, size: 16, color: AppColors.forestGreen),
+                    const SizedBox(width: 6),
+                    Text(
+                      '這封信將於',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.forestGreen,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  dateText!,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.forestGreen,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  timeText,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.forestGreen,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '開封',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.forestGreen,
+                      ),
+                ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.event_busy, size: 16, color: AppColors.warmGray),
+                const SizedBox(width: 8),
+                Text(
+                  '請選擇開封日期',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.warmGray,
+                      ),
+                ),
+              ],
+            ),
     );
   }
 }
