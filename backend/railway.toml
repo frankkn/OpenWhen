@@ -3,5 +3,8 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
+# 健康檢查打 /health（app 有此路由、回 200）。
+# 不指定的話 Railway 會打根路徑 /（app 無根路由 → 404 → 部署被判定失敗）。
+healthcheckPath = "/health"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
