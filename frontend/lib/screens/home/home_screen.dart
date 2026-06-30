@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,8 +11,31 @@ import 'package:openwhen/services/api_service.dart';
 import 'package:openwhen/services/auth_service.dart';
 import 'package:openwhen/theme/app_theme.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    // 每秒重建畫面，讓倒數文字與「可以開封」狀態隨時間自動更新，
+    // 不需使用者手動重新整理。（isOpenable 為純前端時間比較，無需重打 API）
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
 
   void _openSettings(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
@@ -86,7 +111,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final capsulesAsync = ref.watch(capsulesProvider);
 
     return Scaffold(
