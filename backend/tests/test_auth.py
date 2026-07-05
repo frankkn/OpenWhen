@@ -41,3 +41,15 @@ def test_verify_invalid_token_returns_401(auth_client):
     mp.setattr(auth_router, "verify_firebase_token", boom)
     res = client.post("/auth/verify", json={"id_token": "bad"})
     assert res.status_code == 401
+
+
+def test_verify_syncs_changed_email(auth_client, db):
+    client, mp = auth_client
+    mp.setattr(auth_router, "verify_firebase_token",
+               lambda t: {"uid": "u1", "email": "old@example.com", "name": "U"})
+    assert client.post("/auth/verify", json={"id_token": "t"}).status_code == 200
+    mp.setattr(auth_router, "verify_firebase_token",
+               lambda t: {"uid": "u1", "email": "new@example.com", "name": "U"})
+    assert client.post("/auth/verify", json={"id_token": "t"}).status_code == 200
+    user = db.query(User).filter(User.firebase_uid == "u1").first()
+    assert user.email == "new@example.com"

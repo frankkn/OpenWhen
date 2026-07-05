@@ -31,9 +31,18 @@ def upsert_user_from_token(db: Session, decoded: dict) -> User:
             db.rollback()
             user = db.query(User).filter(User.firebase_uid == decoded["uid"]).first()
     else:
+        changed = False
         new_name = decoded.get("name")
         if new_name and user.display_name != new_name:
             user.display_name = new_name
+            changed = True
+        # email 也要同步：admin 判定（settings.admin_email）比對的是 DB 裡的 email，
+        # 使用者在 Firebase 改信箱後若不同步，權限判斷會用到舊值。
+        new_email = decoded.get("email")
+        if new_email and user.email != new_email:
+            user.email = new_email
+            changed = True
+        if changed:
             db.commit()
             db.refresh(user)
     return user
