@@ -8,7 +8,7 @@ const firebaseAppId = '1:435815934912:web:47e8b653c8130ccf15f625';
 
 // 管理員帳號：僅控制測試用 UI 是否顯示；實際權限由後端 ADMIN_EMAIL 環境變數決定，
 // 兩者需一致。
-const adminEmail = 'admin@admin.com';
+const adminEmail = 'frank840629@gmail.com';
 
 // Backend API
 const apiBaseUrl = 'https://openwhen-production.up.railway.app';
