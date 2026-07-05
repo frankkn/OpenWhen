@@ -1,0 +1,2 @@
+# shell script 必須是 LF，CRLF 會讓容器裡的 bash 直接掛掉
+*.sh text eol=lf

@@ -1,0 +1,12 @@
+# 機密：絕不能進 image（Dockerfile 是 COPY . .）
+.env
+firebase-service-account.json
+
+# 開發雜物
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/
+requirements-dev.txt
