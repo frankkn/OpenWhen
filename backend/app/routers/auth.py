@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.user import User
-from app.schemas.user import UserVerifyRequest, UserOut
+from app.dependencies import upsert_user_from_token
+from app.schemas.user import UserOut, UserVerifyRequest
 from app.services.firebase_service import verify_firebase_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -13,25 +13,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 def verify_and_upsert_user(body: UserVerifyRequest, db: Session = Depends(get_db)):
     try:
         decoded = verify_firebase_token(body.id_token)
-    except Exception as e:
+    except ValueError as e:
+        # verify_firebase_token 只會拋 ValueError（含友善訊息）；
+        # 其他例外（例如 DB 掛掉）交給 FastAPI 回 500，避免把內部錯誤細節
+        # 放進 response detail 洩漏給 client。
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
-
-    user = db.query(User).filter(User.firebase_uid == decoded["uid"]).first()
-    if not user:
-        user = User(
-            firebase_uid=decoded["uid"],
-            email=decoded.get("email", ""),
-            display_name=decoded.get("name"),
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    else:
-        # 更新 display_name（如果有變）
-        new_name = decoded.get("name")
-        if new_name and user.display_name != new_name:
-            user.display_name = new_name
-            db.commit()
-            db.refresh(user)
-
-    return user
+    return upsert_user_from_token(db, decoded)
