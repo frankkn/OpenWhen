@@ -18,7 +18,6 @@ class Settings(BaseSettings):
     # 預設為空 = 沒有管理員。要啟用 admin 功能必須明確設定 ADMIN_EMAIL，
     # 且應設成你真實擁有、可收信驗證的信箱（假信箱誰先註冊誰就是 admin）。
     admin_email: str = ""
-    secret_key: str = "change-me-in-production"
     allowed_origins: str = "http://localhost:3000,http://localhost:8080"
 
     @property
