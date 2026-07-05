@@ -73,6 +73,7 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
     try {
       await ApiService().openCapsule(widget.capsuleId);
       ref.invalidate(capsuleDetailProvider(widget.capsuleId));
+      ref.invalidate(capsulesProvider); // 首頁列表的「待開封」狀態也要更新
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('開封失敗：$e')));
     } finally {
