@@ -175,6 +175,16 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
       );
       return;
     }
+    if (_sendEmail && !_useLoginEmail) {
+      final v = _customEmailCtrl.text.trim();
+      final emailOk = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v);
+      if (!emailOk) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('請輸入有效的通知 Email')),
+        );
+        return;
+      }
+    }
     setState(() => _saving = true);
     try {
       final titleInput = _titleCtrl.text.trim();

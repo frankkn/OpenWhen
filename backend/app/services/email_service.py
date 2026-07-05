@@ -1,3 +1,4 @@
+import html as html_lib
 from datetime import datetime, timezone, timedelta
 
 import httpx
@@ -37,7 +38,9 @@ def send_capsule_ready_email(
             "Brevo 未設定：缺少 BREVO_API_KEY 或 MAIL_FROM_EMAIL，無法寄送通知信"
         )
 
-    title_display = _display_title(capsule_title, open_date)
+    # 標題是使用者輸入、收件人又可以是任意信箱，未轉義直接進 HTML
+    # 等於讓人用我們的寄件人名義發任意內容（釣魚向量）。
+    title_display = html_lib.escape(_display_title(capsule_title, open_date))
 
     html = f"""
     <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #1A1410; padding: 40px 24px;">

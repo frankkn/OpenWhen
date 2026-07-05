@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from app.models.capsule import CapsuleMode, CapsuleStatus
 
 
@@ -38,7 +38,7 @@ class CapsuleCreate(BaseModel):
     content: str
     mode: CapsuleMode
     open_date: datetime
-    notification_email: str | None = None
+    notification_email: EmailStr | None = None
     answers: list[CapsuleAnswerIn] = []
 
 
