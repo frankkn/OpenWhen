@@ -131,8 +131,10 @@ BREVO_API_KEY=
 MAIL_FROM_EMAIL=
 
 # App
-SECRET_KEY=
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+# 管理員信箱（預設空 = 沒有 admin；必須設成你真實擁有的信箱，
+# 並與 frontend/lib/config/env.dart 的 adminEmail 一致）
+ADMIN_EMAIL=
 ```
 
 ### Frontend (`frontend/lib/config/env.dart`)
@@ -168,14 +170,16 @@ const apiBaseUrl = 'http://localhost:8000';
 |--------------------|--------------|----------------------------------|
 | id                 | UUID PK      |                                  |
 | user_id            | UUID FK      | → users.id                       |
-| title              | VARCHAR      | 選填標題                         |
-| content            | TEXT         | 最終信件內容                     |
+| title              | VARCHAR(200) | 選填標題                         |
+| content            | TEXT         | 最終信件內容（locked 時 API 不回傳）|
 | mode               | ENUM         | `free` / `ai_assisted`          |
 | status             | ENUM         | `locked` / `opened`              |
-| open_date          | DATE         | 設定的開封日期                   |
+| open_date          | TIMESTAMPTZ  | 設定的開封時間（UTC）            |
 | notification_email | VARCHAR      | 到期通知 email                   |
-| created_at         | TIMESTAMP    |                                  |
-| opened_at          | TIMESTAMP    | 實際開封時間                     |
+| created_at         | TIMESTAMPTZ  |                                  |
+| opened_at          | TIMESTAMPTZ  | 實際開封時間                     |
+| notification_sent_at | TIMESTAMPTZ | 通知已寄出時間                  |
+| notification_error | TEXT         | 通知永久失敗原因（有值不重試）   |
 
 ### `capsule_answers`
 | 欄位            | 型別      | 說明                          |
@@ -209,9 +213,16 @@ const apiBaseUrl = 'http://localhost:8000';
 |--------|---------------------------|----------------------------------|
 | GET    | `/capsules`               | 列出當前使用者所有膠囊           |
 | POST   | `/capsules`               | 建立新膠囊（鎖住）               |
-| GET    | `/capsules/{id}`          | 取得膠囊詳情                     |
+| GET    | `/capsules/{id}`          | 取得膠囊詳情（locked 時 content/answers 為空）|
+| DELETE | `/capsules/{id}`          | 刪除膠囊                         |
 | POST   | `/capsules/{id}/open`     | 開封膠囊（需確認日期已到）       |
 | POST   | `/capsules/{id}/reflections` | 儲存開封反思回答              |
+
+### Admin（需 ADMIN_EMAIL 帳號）
+| 方法   | 路徑                      | 說明                             |
+|--------|---------------------------|----------------------------------|
+| POST   | `/admin/check-notifications` | 手動觸發到期通知檢查          |
+| GET    | `/admin/notification-status/{id}` | 通知狀態診斷（擁有者即可）|
 
 ### AI
 | 方法   | 路徑                      | 說明                             |
@@ -223,25 +234,20 @@ const apiBaseUrl = 'http://localhost:8000';
 
 ## 目前已完成的功能
 
-- [x] 專案目錄結構
-- [x] FastAPI 骨架（main.py、router、依賴注入）
-- [x] PostgreSQL 資料庫模型（SQLAlchemy + Alembic）
-- [x] Firebase Auth 驗證中介層
-- [x] 使用者 API（驗證 token → 建立/取得 user）
-- [x] 膠囊 CRUD API
-- [x] 開封 API（日期檢查）
-- [x] Claude AI 整合（整理信件、生成反思問題）
+- [x] FastAPI backend：膠囊 CRUD、開封（日期檢查）、AI 整合（Gemini）、admin 端點
+- [x] Firebase Auth 驗證中介層（token → 建立/取得 user，email/display_name 自動同步）
+- [x] Flutter 前端：登入、自由/AI 協助寫信流程、膠囊列表、開封、反思問答
+- [x] APScheduler 排程（每 5 分鐘檢查到期膠囊，4xx 永久失敗不重試）
+- [x] Brevo Email 通知（HTML 已做轉義，收件人 EmailStr 驗證）
+- [x] 鎖定中的膠囊 API 不回傳內文（開封後才有）
+- [x] Backend pytest 測試（`cd backend && pytest`，sqlite in-memory，不需要 Postgres/Firebase）
+- [x] Railway 部署（Dockerfile + start.sh，含 --proxy-headers）
 
 ## 待完成的功能
 
-- [ ] Flutter 前端（登入頁、寫信流程、膠囊列表、開封流程）
-- [ ] Firebase Auth Flutter 整合
-- [ ] AI 協助模式的 9 題問答 UI
 - [ ] 開封信封動畫
-- [ ] APScheduler 排程（每日檢查到期膠囊）
-- [ ] Resend Email 通知
-- [ ] PWA manifest + service worker
-- [ ] Docker Compose 完整部署設定
+- [ ] PWA service worker（manifest 已有）
+- [ ] Flutter widget 測試
 
 ---
 
@@ -268,9 +274,17 @@ docker ps  # 確認 container 有在跑
 docker logs openwhen-db
 ```
 
-### Claude API rate limit
+### Gemini API rate limit
 - 開發時用較短的測試文字
 - 生產環境考慮加 retry with exponential backoff（`tenacity` 套件）
+
+### 跑 backend 測試
+```bash
+cd backend
+pip install -r requirements.txt -r requirements-dev.txt
+pytest
+```
+測試用 sqlite in-memory + auth override，不需要 Postgres、Firebase 或任何 API key。
 
 ---
 
