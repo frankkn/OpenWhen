@@ -27,8 +27,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     // 每秒重建畫面，讓倒數文字與「可以開封」狀態隨時間自動更新，
     // 不需使用者手動重新整理。（isOpenable 為純前端時間比較，無需重打 API）
+    // 只有列表裡還有未開封的信才需要重建，避免無謂的每秒 rebuild。
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
+      if (!mounted) return;
+      final capsules = ref.read(capsulesProvider).valueOrNull;
+      final hasLocked =
+          capsules?.any((c) => c.status == CapsuleStatus.locked) ?? false;
+      if (hasLocked) setState(() {});
     });
   }
 
