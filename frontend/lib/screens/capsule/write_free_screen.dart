@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:openwhen/screens/capsule/set_open_date_screen.dart';
 import 'package:openwhen/theme/app_theme.dart';
 
@@ -51,6 +52,7 @@ class _WriteFreeScreenState extends State<WriteFreeScreen> {
         child: Column(children: [
           TextField(
             controller: _titleCtrl,
+            inputFormatters: [LengthLimitingTextInputFormatter(200)], // DB 上限 200 字
             decoration: const InputDecoration(labelText: '標題（選填）', border: InputBorder.none),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
           ),

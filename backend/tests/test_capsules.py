@@ -99,3 +99,11 @@ def test_locked_capsule_hides_content_and_answers(db, client, user_a):
     detail = client.get(f"/capsules/{cid}").json()
     assert detail["content"] == "dear future me"
     assert detail["answers"][0]["answer_text"] == "secret answer"
+
+
+def test_title_over_200_chars_rejected(client):
+    """DB 欄位 String(200)，缺驗證時會直接 500。"""
+    res = client.post("/capsules", json=_create_payload(title="x" * 201))
+    assert res.status_code == 422
+    res = client.post("/capsules", json=_create_payload(title="x" * 200))
+    assert res.status_code == 201

@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from app.models.capsule import CapsuleMode, CapsuleStatus
 
 
@@ -34,7 +34,8 @@ class ReflectionSaveRequest(BaseModel):
 
 
 class CapsuleCreate(BaseModel):
-    title: str | None = None
+    # DB 欄位是 String(200)，沒有這層驗證的話超長標題會變成 500
+    title: str | None = Field(None, max_length=200)
     content: str
     mode: CapsuleMode
     open_date: datetime
