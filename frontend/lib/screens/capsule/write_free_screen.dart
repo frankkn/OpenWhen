@@ -21,6 +21,27 @@ class _WriteFreeScreenState extends State<WriteFreeScreen> {
     super.dispose();
   }
 
+  Future<void> _confirmPop() async {
+    final hasContent =
+        _titleCtrl.text.trim().isNotEmpty || _contentCtrl.text.trim().isNotEmpty;
+    if (!hasContent) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('放棄這封信？'),
+        content: const Text('返回後，已寫的內容將會消失'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('繼續寫')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('放棄')),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) Navigator.pop(context);
+  }
+
   void _proceed() {
     if (_contentCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('請寫點什麼再繼續')));
@@ -41,7 +62,12 @@ class _WriteFreeScreenState extends State<WriteFreeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, _) {
+        if (!didPop) _confirmPop();
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('寫信'),
         backgroundColor: AppColors.paperWhite,
@@ -73,6 +99,7 @@ class _WriteFreeScreenState extends State<WriteFreeScreen> {
             ),
           ),
         ]),
+      ),
       ),
     );
   }
