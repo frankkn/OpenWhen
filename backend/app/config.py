@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -23,8 +23,9 @@ class Settings(BaseSettings):
     def origins_list(self) -> list[str]:
         return [o.strip() for o in self.allowed_origins.split(",")]
 
-    class Config:
-        env_file = ".env"
+    # extra="ignore"：.env 或環境變數中多出來的 key（例如已棄用的 RESEND_API_KEY）
+    # 不應讓 app 啟動失敗
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 settings = Settings()
