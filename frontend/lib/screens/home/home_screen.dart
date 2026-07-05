@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:openwhen/config/env.dart';
 import 'package:openwhen/models/capsule.dart';
 import 'package:openwhen/providers/capsule_provider.dart';
 import 'package:openwhen/services/api_service.dart';
@@ -75,7 +76,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 },
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
-              if (FirebaseAuth.instance.currentUser?.email == 'admin@admin.com') ...[
+              if (FirebaseAuth.instance.currentUser?.email == adminEmail) ...[
                 ListTile(
                   leading: const Icon(Icons.mark_email_read_outlined),
                   title: const Text('立即檢查到期通知（測試）'),

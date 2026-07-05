@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:openwhen/config/env.dart';
 import 'package:openwhen/providers/capsule_provider.dart';
 import 'package:openwhen/services/api_service.dart';
 import 'package:openwhen/theme/app_theme.dart';
@@ -50,7 +51,7 @@ class _SetOpenDateScreenState extends ConsumerState<SetOpenDateScreen> {
   @override
   void initState() {
     super.initState();
-    _isAdmin = FirebaseAuth.instance.currentUser?.email == 'admin@admin.com';
+    _isAdmin = FirebaseAuth.instance.currentUser?.email == adminEmail;
     _presets = _isAdmin
         ? [
             ('20 秒後', const Duration(seconds: 20)),
