@@ -24,6 +24,12 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _inWebView = isInWebView();
+    // LINE：直接自動跳轉系統瀏覽器，使用者不用手動點選單。
+    // 若跳轉後仍在 LINE（沒外開），maybeRedirect 內的防迴圈會擋下，
+    // 此時 _inWebView 仍為 true，退回顯示警告橫幅 / dialog。
+    if (isLineWebView()) {
+      maybeRedirectToExternalBrowser();
+    }
   }
 
   @override

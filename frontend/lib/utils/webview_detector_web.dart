@@ -15,3 +15,20 @@ bool isInWebView() {
   if (ua.contains('ipad') && !ua.contains('safari')) return true;
   return false;
 }
+
+bool isLineWebView() {
+  return html.window.navigator.userAgent.toLowerCase().contains('line/');
+}
+
+/// LINE 專用：把當前網址加上 ?openExternalBrowser=1 再導過去，
+/// LINE 內建瀏覽器會改用系統預設瀏覽器（Safari/Chrome）重開，
+/// Google OAuth 才能正常運作。
+///
+/// 已帶該參數時直接 return，避免跳轉沒外開時造成無限迴圈。
+void maybeRedirectToExternalBrowser() {
+  final uri = Uri.base;
+  if (uri.queryParameters['openExternalBrowser'] == '1') return;
+  final params = Map<String, String>.from(uri.queryParameters);
+  params['openExternalBrowser'] = '1';
+  html.window.location.replace(uri.replace(queryParameters: params).toString());
+}
