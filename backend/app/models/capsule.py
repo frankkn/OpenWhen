@@ -32,6 +32,9 @@ class Capsule(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     notification_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # 通知寄送的永久性失敗（例如信箱不存在被 Brevo 4xx 拒絕）。
+    # 有值 = 排程器不再重試；NULL = 尚未失敗或屬暫時性錯誤（會重試）。
+    notification_error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     user = relationship("User", back_populates="capsules")
     answers = relationship("CapsuleAnswer", back_populates="capsule", cascade="all, delete-orphan", order_by="CapsuleAnswer.question_number")

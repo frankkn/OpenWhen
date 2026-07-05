@@ -1,6 +1,8 @@
 import logging
 from datetime import datetime, timezone
 
+import httpx
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from sqlalchemy.orm import Session
@@ -31,6 +33,7 @@ def check_due_capsules() -> dict:
                 Capsule.status == CapsuleStatus.locked,
                 Capsule.notification_email.isnot(None),
                 Capsule.notification_sent_at.is_(None),
+                Capsule.notification_error.is_(None),
                 Capsule.open_date <= now,
             )
             .all()
@@ -54,10 +57,25 @@ def check_due_capsules() -> dict:
                 ).update({Capsule.notification_sent_at: now}, synchronize_session=False)
                 db.commit()
                 sent += 1
+            except httpx.HTTPStatusError as e:
+                db.rollback()
+                failed += 1
+                status = e.response.status_code
+                if 400 <= status < 500 and status != 429:
+                    # 4xx（429 除外）代表重試也不會成功（例如收件人信箱無效），
+                    # 記下錯誤並停止重試，避免每 5 分鐘無限重寄 + error log 無限累積。
+                    db.query(Capsule).filter(Capsule.id == capsule.id).update(
+                        {Capsule.notification_error: f"HTTP {status}: {e.response.text[:500]}"},
+                        synchronize_session=False,
+                    )
+                    db.commit()
+                    logger.error("Email permanently failed for capsule %s: HTTP %s", capsule.id, status)
+                else:
+                    logger.error("Email failed for capsule %s (will retry): %s", capsule.id, e)
             except Exception as e:
                 db.rollback()
                 failed += 1
-                logger.error("Email failed for capsule %s: %s", capsule.id, e)
+                logger.error("Email failed for capsule %s (will retry): %s", capsule.id, e)
     finally:
         db.close()
     return {"sent": sent, "failed": failed}

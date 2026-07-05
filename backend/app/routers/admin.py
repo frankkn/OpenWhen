@@ -52,6 +52,8 @@ def _diagnose(capsule: Capsule, mail_configured: bool) -> list[str]:
         issues.append("Brevo 未設定：Railway 缺少 BREVO_API_KEY 或 MAIL_FROM_EMAIL")
     if capsule.notification_sent_at:
         issues.append(f"通知已於 {capsule.notification_sent_at} 送出（不會重複寄）")
+    if capsule.notification_error:
+        issues.append(f"通知寄送永久失敗（不會重試）：{capsule.notification_error}")
     now = datetime.now(timezone.utc)
     if capsule.open_date and capsule.open_date > now:
         issues.append(f"開封日期 {capsule.open_date} 尚未到，排程器不會寄信")
