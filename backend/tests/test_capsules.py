@@ -76,3 +76,26 @@ def test_open_after_date_succeeds(db, client, user_a):
     assert res.json()["status"] == "opened"
     # 開封後不能再開
     assert client.post(f"/capsules/{capsule.id}/open").status_code == 400
+
+
+def test_locked_capsule_hides_content_and_answers(db, client, user_a):
+    """未開封的信不能從 API 讀到內文（核心產品承諾）。"""
+    res = client.post("/capsules", json=_create_payload(
+        answers=[{"question_number": 1, "question_text": "q1", "answer_text": "secret answer"}],
+    ))
+    assert res.status_code == 201
+    cid = res.json()["id"]
+
+    detail = client.get(f"/capsules/{cid}").json()
+    assert detail["status"] == "locked"
+    assert detail["content"] is None
+    assert detail["answers"] == []
+
+    # 開封後才看得到全文
+    capsule = db.query(Capsule).filter(Capsule.id == cid).first()
+    capsule.open_date = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=1)
+    db.commit()
+    assert client.post(f"/capsules/{cid}/open").status_code == 200
+    detail = client.get(f"/capsules/{cid}").json()
+    assert detail["content"] == "dear future me"
+    assert detail["answers"][0]["answer_text"] == "secret answer"

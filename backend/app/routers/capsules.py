@@ -83,7 +83,15 @@ def get_capsule(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return _get_owned_capsule(capsule_id, current_user.id, db)
+    capsule = _get_owned_capsule(capsule_id, current_user.id, db)
+    if capsule.status == CapsuleStatus.locked:
+        # 未開封前不回傳信件內文與問答，避免使用者從 API/DevTools 提前偷看，
+        # 破壞「時光膠囊」的核心承諾。開封（POST /open）成功後才回傳全文。
+        out = CapsuleOut.model_validate(capsule)
+        out.content = None
+        out.answers = []
+        return out
+    return capsule
 
 
 @router.delete("/{capsule_id}", status_code=204)

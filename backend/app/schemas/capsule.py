@@ -46,7 +46,8 @@ class CapsuleOut(BaseModel):
     id: str
     user_id: str
     title: str | None
-    content: str
+    # locked 狀態下 API 不回傳內文（None），開封後才有值
+    content: str | None
     mode: CapsuleMode
     status: CapsuleStatus
     open_date: datetime
