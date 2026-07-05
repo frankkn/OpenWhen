@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:openwhen/services/auth_service.dart';
 import 'package:openwhen/theme/app_theme.dart';
+import 'package:openwhen/utils/webview_detector.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +18,13 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLogin = true;
   final _nameCtrl = TextEditingController();
   bool _loading = false;
+  bool _inWebView = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _inWebView = isInWebView();
+  }
 
   @override
   void dispose() {
@@ -48,6 +57,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleGoogle() async {
+    if (_inWebView) {
+      _showWebViewDialog();
+      return;
+    }
     setState(() => _loading = true);
     try {
       await AuthService.signInWithGoogle();
@@ -59,6 +72,35 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  void _showWebViewDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('請用瀏覽器開啟'),
+        content: const Text(
+          '偵測到您正在使用 App 內建瀏覽器（如 LINE、Instagram、Facebook 等）。\n\n'
+          'Google 登入需要在 Chrome 或 Safari 中進行，請複製以下網址後用瀏覽器開啟：',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(const ClipboardData(text: 'https://openwhen-a527e.web.app'));
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('網址已複製，請貼到 Chrome 或 Safari 開啟')),
+              );
+            },
+            child: const Text('複製網址'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('關閉'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -127,6 +169,28 @@ class _LoginScreenState extends State<LoginScreen> {
                   Expanded(child: Divider()),
                 ]),
                 const SizedBox(height: 24),
+                if (_inWebView)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.amber.shade400),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning_amber_rounded, color: Colors.amber.shade800, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '請用 Chrome 或 Safari 開啟本頁，Google 登入才能正常運作。',
+                            style: TextStyle(fontSize: 13, color: Colors.amber.shade900),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 OutlinedButton.icon(
                   onPressed: _loading ? null : _handleGoogle,
                   icon: const Icon(Icons.login),

@@ -1,0 +1,1 @@
+bool isInWebView() => false;
