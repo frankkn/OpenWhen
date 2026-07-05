@@ -19,6 +19,7 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
   bool _opening = false;
   bool _generating = false;
   bool _deleting = false;
+  bool _savingReflections = false;
   List<Reflection>? _reflections;
   List<TextEditingController>? _reflectionControllers;
 
@@ -85,9 +86,17 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
     setState(() => _generating = true);
     try {
       final questions = await ApiService().generateReflections(content);
+      // 立即以空答案存檔：問題只存在記憶體的話，離開頁面就消失，
+      // 下次得重新生成（而且可能生出不同的問題）。
+      var reflections = questions.map((q) => Reflection(questionText: q)).toList();
+      try {
+        reflections = await ApiService().saveReflections(widget.capsuleId, reflections);
+      } catch (_) {
+        // 自動存檔失敗不擋作答；之後按「儲存反思」會再存一次
+      }
       setState(() {
-        _reflections = questions.map((q) => Reflection(questionText: q)).toList();
-        _reflectionControllers = questions.map((_) => TextEditingController()).toList();
+        _reflections = reflections;
+        _reflectionControllers = reflections.map((_) => TextEditingController()).toList();
       });
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('生成失敗：$e')));
@@ -97,6 +106,8 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
   }
 
   Future<void> _saveReflections(Capsule capsule) async {
+    if (_savingReflections) return;
+    setState(() => _savingReflections = true);
     final updated = List.generate(
       _reflections!.length,
       (i) => _reflections![i].copyWith(answerText: _reflectionControllers![i].text.trim()),
@@ -109,6 +120,8 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('反思已儲存')));
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('儲存失敗：$e')));
+    } finally {
+      if (mounted) setState(() => _savingReflections = false);
     }
   }
 
@@ -218,8 +231,10 @@ class _CapsuleDetailScreenState extends ConsumerState<CapsuleDetailScreen> {
                         ]),
                       )),
                   FilledButton(
-                    onPressed: () => _saveReflections(capsule),
-                    child: const Text('儲存反思'),
+                    onPressed: _savingReflections ? null : () => _saveReflections(capsule),
+                    child: _savingReflections
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Text('儲存反思'),
                   ),
                 ] else ...[
                   OutlinedButton.icon(
