@@ -1,112 +1,118 @@
-# OpenWhen — 寫一封信給未來的自己
+<div align="right">
 
-OpenWhen 是一個時光膠囊信件 app。你可以現在寫一封信，鎖住它，等到設定的日期才能開封。開封時，AI 會扮演見證者，根據信的內容提問，幫你回顧當年的自己。
+**English** | [繁體中文](README.zh-TW.md)
 
----
+</div>
 
-## 開始使用
+# OpenWhen — Write a Letter to Your Future Self
 
-前往網頁版：**[https://openwhen-a527e.web.app](https://openwhen-a527e.web.app)**
-
-用 Google 帳號或 Email 登入即可開始。
+OpenWhen is a time-capsule letter app. Write a letter today, lock it away, and it stays sealed until the date you choose. When it's time to open it, an AI acts as a witness — asking questions based on what you wrote to help you look back at who you were.
 
 ---
 
-## 使用流程
+## Getting Started
 
-### 1. 寫信
+Head to the web app: **[https://openwhen-a527e.web.app](https://openwhen-a527e.web.app)**
 
-點擊首頁右下角「**寫信**」按鈕，選擇寫信模式：
-
-| 模式 | 說明 |
-|------|------|
-| **自由書寫** | 直接寫信，想寫什麼都行 |
-| **AI 協助** | 回答 9 個引導問題，AI 幫你整理成一封完整的信 |
-
-#### AI 協助模式的 9 個問題
-
-AI 協助模式會從 5 個面向引導你：
-1. 你現在在做什麼？生活的重心是什麼？
-2. 你現在的心情，用一句話描述是什麼？
-3. 你現在最擔心的事是什麼？
-4. 有什麼事情讓你最近睡不好，或一直放不下？
-5. 一年後，你最希望什麼事情有所改變？
-6. 你希望未來的自己，變成什麼樣的人？
-7. 有什麼事你一直想做，但還沒有去做？
-8. 如果明天一切都會改變，你今天會做什麼？
-9. 如果只能對未來的自己說一句話，你想說什麼？
-
-每題都可以跳過，回答完後 AI 會自動整理成信件。
+Sign in with your Google account or Email and you're ready to go.
 
 ---
 
-### 2. 設定開封日期
+## How It Works
 
-寫完信後，設定**什麼時候才能打開這封信**：
+### 1. Write a Letter
 
-- 快速選擇：1 天後、1 週後、1 個月後、1 年後、2 年後、3 年後、5 年後（已選取的可再次點擊取消）
-- 自訂：分別點「選擇日期」和「選擇時間」，下方摘要卡片會即時顯示最終開封時間
+Tap the "**Write**" button at the bottom right of the home page and pick a writing mode:
 
-> 最短 1 天，最長數十年。
+| Mode | Description |
+|------|-------------|
+| **Free Writing** | Write your letter directly — anything goes |
+| **AI Assisted** | Answer 9 guided questions and let the AI shape your answers into a complete letter |
 
-#### Email 到期通知（選填）
+#### The 9 Questions in AI Assisted Mode
 
-開啟「到期時寄 Email 通知」，膠囊到期當天會收到提醒信。可以使用登入的 Email 或填入其他地址。
+AI Assisted mode guides you through 5 areas of reflection:
+1. What are you doing right now? What is the center of your life?
+2. How would you describe your current mood in one sentence?
+3. What worries you the most right now?
+4. Is there something keeping you up at night, or something you just can't let go of?
+5. A year from now, what do you most hope will have changed?
+6. What kind of person do you hope your future self becomes?
+7. Is there something you've always wanted to do but haven't yet?
+8. If everything were to change tomorrow, what would you do today?
+9. If you could say only one thing to your future self, what would it be?
 
-設定完成後點「**封存這封信**」，膠囊就鎖住了。
-
----
-
-### 3. 開封信件
-
-回到首頁，點擊任一膠囊卡片可以查看詳情。
-
-- **待開封**：顯示距離開封還有多少時間（天 / 小時 / 分鐘），倒數結束後頁面自動更新
-- **可以開封了！**：點「開封這封信」即可閱讀
-
----
-
-### 4. AI 見證者反思
-
-開封後，點「**產生 AI 反思問題**」，AI 會根據信件內容提出 3～5 個問題，幫你對照當年的自己和現在的差距。
-
-你可以填寫答案後點「儲存反思」，日後再回來查看。
+Every question is skippable. Once you're done, the AI automatically composes your answers into a letter.
 
 ---
 
-### 5. 刪除膠囊
+### 2. Set an Opening Date
 
-在膠囊詳情頁面，點右上角的刪除圖示，確認後即可刪除。**刪除後無法復原。**
+After writing your letter, decide **when it can be opened**:
 
----
+- Quick picks: 1 day, 1 week, 1 month, 1 year, 2 years, 3 years, or 5 years from now (tap a selected option again to deselect it)
+- Custom: tap "Pick a date" and "Pick a time" separately — the summary card below updates in real time to show the final opening date
 
-## 其他
+> Minimum 1 day, maximum decades.
 
-### 設定
+#### Email Reminder on Opening Day (optional)
 
-點首頁右上角「⚙️」圖示可以開啟設定：
+Turn on "Send an Email reminder when it's due" and you'll get a reminder email on the day your capsule unlocks. You can use your sign-in Email or enter a different address.
 
-- **版本**：目前版本 v1.1.1
-- **使用說明**：完整操作指引
-- **登出**
-
-### 登出
-
-設定 → 登出，或首頁右上角登出圖示。
+Once everything is set, tap "**Seal this letter**" and your capsule is locked.
 
 ---
 
-## 常見問題
+### 3. Open a Letter
 
-**Q：到期了還沒收到通知 Email？**
-請確認建立膠囊時有開啟「Email 通知」並填入正確地址。系統每 5 分鐘檢查一次到期膠囊，通知最多可能延遲約 5 分鐘。
+Back on the home page, tap any capsule card to view its details.
 
-**Q：可以修改信件或開封日期嗎？**
-目前不支援編輯，請刪除後重新建立。
-
-**Q：AI 協助模式的信件是 AI 寫的嗎？**
-AI 只負責「整理」你的答案，信件的每一個想法都來自你填寫的內容。
+- **Sealed**: shows how much time remains until opening (days / hours / minutes); the page refreshes automatically when the countdown ends
+- **Ready to open!**: tap "Open this letter" to read it
 
 ---
 
-*OpenWhen — 給未來的自己，留一封信。*
+### 4. AI Witness Reflection
+
+After opening a letter, tap "**Generate AI reflection questions**". Based on what you wrote, the AI poses 3–5 questions to help you compare who you were then with who you are now.
+
+You can write down your answers and tap "Save reflection" to revisit them later.
+
+---
+
+### 5. Delete a Capsule
+
+On the capsule detail page, tap the delete icon at the top right and confirm. **Deletion cannot be undone.**
+
+---
+
+## More
+
+### Settings
+
+Tap the "⚙️" icon at the top right of the home page to open Settings:
+
+- **Version**: currently v1.1.1
+- **User Guide**: full usage instructions
+- **Sign out**
+
+### Signing Out
+
+Settings → Sign out, or use the sign-out icon at the top right of the home page.
+
+---
+
+## FAQ
+
+**Q: My capsule is due but I haven't received the reminder Email?**
+Make sure you enabled "Email reminder" when creating the capsule and entered the correct address. The system checks for due capsules every 5 minutes, so reminders may be delayed by up to about 5 minutes.
+
+**Q: Can I edit a letter or change its opening date?**
+Editing isn't supported yet — please delete the capsule and create a new one.
+
+**Q: In AI Assisted mode, is the letter written by the AI?**
+The AI only "organizes" your answers. Every idea in the letter comes from what you wrote.
+
+---
+
+*OpenWhen — leave a letter for your future self.*
