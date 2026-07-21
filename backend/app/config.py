@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     # 且應設成你真實擁有、可收信驗證的信箱（假信箱誰先註冊誰就是 admin）。
     admin_email: str = ""
     allowed_origins: str = "http://localhost:3000,http://localhost:8080"
+    # 在 serverless（Cloud Run scale-to-zero）上關閉 in-process 排程器，
+    # 改由外部 Cloud Scheduler 定時打 /internal/check-notifications 觸發。
+    enable_scheduler: bool = True
+    # /internal/check-notifications 的共享密鑰（Cloud Scheduler 帶 x-cron-secret 標頭）。
+    # 空字串代表停用該端點（拒絕所有呼叫），避免未設定時被任意公開觸發。
+    cron_secret: str = ""
 
     @property
     def origins_list(self) -> list[str]:

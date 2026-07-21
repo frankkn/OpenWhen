@@ -1,0 +1,15 @@
+# 前端不需進 backend image（Flutter 專案很大，會拖慢 build）
+frontend/
+
+# 機密：絕不能進 image（本來就 gitignore，這裡雙重保險）
+**/.env
+**/firebase-service-account.json
+
+# 開發雜物
+**/venv/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+backend/tests/
+.git/
