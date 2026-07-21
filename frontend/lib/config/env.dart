@@ -10,5 +10,5 @@ const firebaseAppId = '1:435815934912:web:47e8b653c8130ccf15f625';
 // 兩者需一致。
 const adminEmail = 'frank840629@gmail.com';
 
-// Backend API
-const apiBaseUrl = 'https://openwhen-backend.onrender.com';
+// Backend API（Cloud Run, asia-southeast1）
+const apiBaseUrl = 'https://openwhen-1075079498116.asia-southeast1.run.app';
