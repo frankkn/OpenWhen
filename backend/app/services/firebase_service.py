@@ -11,7 +11,7 @@ _app = None
 def _get_app():
     global _app
     if _app is None:
-        # 優先使用環境變數中的 JSON（正式環境 / `railway run`），否則退回讀檔案。
+        # 優先使用環境變數中的 JSON（正式環境 / Cloud Run），否則退回讀檔案。
         if settings.firebase_service_account_json:
             try:
                 sa_dict = json.loads(settings.firebase_service_account_json)

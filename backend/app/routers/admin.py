@@ -49,7 +49,7 @@ def _diagnose(capsule: Capsule, mail_configured: bool) -> list[str]:
     if not capsule.notification_email:
         issues.append("notification_email 未設定：建立信件時沒有開啟 Email 通知開關")
     if not mail_configured:
-        issues.append("Brevo 未設定：Railway 缺少 BREVO_API_KEY 或 MAIL_FROM_EMAIL")
+        issues.append("Brevo 未設定：後端缺少 BREVO_API_KEY 或 MAIL_FROM_EMAIL")
     if capsule.notification_sent_at:
         issues.append(f"通知已於 {capsule.notification_sent_at} 送出（不會重複寄）")
     if capsule.notification_error:

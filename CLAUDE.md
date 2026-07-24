@@ -64,33 +64,8 @@ uvicorn app.main:app --reload --port 8000
 
 API Docs: http://localhost:8000/docs
 
-### 換新電腦 / 快速啟動（用 Railway 注入機密，免金鑰檔）
-
-機密（`FIREBASE_SERVICE_ACCOUNT_JSON`、`DATABASE_URL`、`GEMINI_API_KEY`…）只存在 Railway，
-本機開發用 `railway run` 自動注入，**不需要 `.env`，也不需要 `firebase-service-account.json`**。
-
-```bash
-# 1. 裝 Railway CLI（每台電腦只需一次）
-npm i -g @railway/cli
-railway login
-
-# 2. clone 後連到專案
-git clone <repo>
-cd openwhen/backend
-railway link            # 選擇 OpenWhen 專案 / 服務
-
-# 3. 安裝依賴後直接用 railway run 啟動（環境變數自動注入）
-python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-railway run alembic upgrade head
-railway run uvicorn app.main:app --reload --port 8000
-```
-
-> 後端讀取 Firebase 金鑰的順序：先看環境變數 `FIREBASE_SERVICE_ACCOUNT_JSON`（`railway run` 會注入），
-> 沒有才退回讀 `FIREBASE_SERVICE_ACCOUNT_PATH` 指向的檔案。所以本機兩種方式都行。
->
-> ⚠️ 注意：`railway run` 注入的是 Railway 上的 `DATABASE_URL`（指向正式資料庫）。
-> 若要用本機 Docker 的 PostgreSQL，請改用一般 `.env` 流程，或在指令前覆寫 `DATABASE_URL`。
+> 後端讀取 Firebase 金鑰的順序：先看環境變數 `FIREBASE_SERVICE_ACCOUNT_JSON`（正式環境 / Cloud Run 會注入），
+> 沒有才退回讀 `FIREBASE_SERVICE_ACCOUNT_PATH` 指向的檔案。本機開發用 `.env` 走 (A) 即可。
 
 ### Frontend
 
@@ -241,7 +216,7 @@ const apiBaseUrl = 'http://localhost:8000';
 - [x] Brevo Email 通知（HTML 已做轉義，收件人 EmailStr 驗證）
 - [x] 鎖定中的膠囊 API 不回傳內文（開封後才有）
 - [x] Backend pytest 測試（`cd backend && pytest`，sqlite in-memory，不需要 Postgres/Firebase）
-- [x] Railway 部署（Dockerfile + start.sh，含 --proxy-headers）
+- [x] Cloud Run 部署（repo 根目錄 Dockerfile + start.sh，含 --proxy-headers；scale-to-zero，Cloud Scheduler 觸發 `/internal/check-notifications`）
 
 ## 待完成的功能
 
